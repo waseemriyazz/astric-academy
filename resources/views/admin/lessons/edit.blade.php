@@ -92,7 +92,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Vimeo Preview</h3>
                     <div class="relative w-full rounded-xl overflow-hidden" style="padding-bottom: 56.25%;">
-                        <iframe class="absolute top-0 left-0 w-full h-full" src="https://player.vimeo.com/video/{{ $vimeo_id }}" title="Vimeo video player" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                        <iframe class="absolute top-0 left-0 w-full h-full" src="https://player.vimeo.com/video/{{ $vimeo_id }}?title=0&byline=0&portrait=0&badge=0" title="Vimeo video player" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
                     </div>
                 </div>
             @endif

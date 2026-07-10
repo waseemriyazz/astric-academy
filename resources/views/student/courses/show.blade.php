@@ -58,7 +58,7 @@
                 <div class="w-full h-full relative" style="padding-bottom: 56.25%;">
                     <iframe 
                         class="absolute top-0 left-0 w-full h-full"
-                        src="https://player.vimeo.com/video/{{ $vimeoId }}" 
+                        src="https://player.vimeo.com/video/{{ $vimeoId }}?title=0&byline=0&portrait=0&badge=0" 
                         title="Vimeo video player" 
                         frameborder="0" 
                         allow="autoplay; fullscreen; picture-in-picture" 
