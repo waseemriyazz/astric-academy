@@ -30,6 +30,13 @@
                 <p class="mt-1 text-xs text-gray-400">Provide the full YouTube video link (e.g. https://www.youtube.com/watch?v=...)</p>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vimeo URL</label>
+                <input type="url" name="vimeo_url" value="{{ old('vimeo_url', $lesson->vimeo_url) }}" class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                @error('vimeo_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                <p class="mt-1 text-xs text-gray-400">Provide the full Vimeo video link (e.g. https://vimeo.com/...)</p>
+            </div>
+
             <div class="flex gap-4">
                 <div class="w-1/2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Duration</label>
@@ -56,7 +63,7 @@
     </div>
 
     <!-- Preview Video -->
-    <div class="w-full lg:w-1/3">
+    <div class="w-full lg:w-1/3 space-y-6">
         @if($lesson->youtube_url)
             @php
                 // Try to extract YouTube ID
@@ -66,9 +73,26 @@
 
             @if($youtube_id)
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Video Preview</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">YouTube Preview</h3>
                     <div class="relative w-full rounded-xl overflow-hidden" style="padding-bottom: 56.25%;">
                         <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/{{ $youtube_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            @endif
+        @endif
+        
+        @if($lesson->vimeo_url)
+            @php
+                // Try to extract Vimeo ID
+                preg_match('/(?:www\.|player\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)/i', $lesson->vimeo_url, $match);
+                $vimeo_id = $match[1] ?? null;
+            @endphp
+
+            @if($vimeo_id)
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Vimeo Preview</h3>
+                    <div class="relative w-full rounded-xl overflow-hidden" style="padding-bottom: 56.25%;">
+                        <iframe class="absolute top-0 left-0 w-full h-full" src="https://player.vimeo.com/video/{{ $vimeo_id }}" title="Vimeo video player" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
                     </div>
                 </div>
             @endif

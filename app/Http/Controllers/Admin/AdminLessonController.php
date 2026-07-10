@@ -22,6 +22,7 @@ class AdminLessonController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'youtube_url' => 'nullable|string',
+            'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
             'order' => 'nullable|integer',
         ]);
@@ -44,6 +45,7 @@ class AdminLessonController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'youtube_url' => 'nullable|string',
+            'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
             'order' => 'nullable|integer',
         ]);

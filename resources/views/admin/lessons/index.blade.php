@@ -50,8 +50,12 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($lesson->youtube_url)
-                                    <a href="{{ $lesson->youtube_url }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Watch Video">
+                                    <a href="{{ $lesson->youtube_url }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Watch YouTube Video">
                                         <i class="fab fa-youtube text-sm"></i>
+                                    </a>
+                                @elseif($lesson->vimeo_url)
+                                    <a href="{{ $lesson->vimeo_url }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Watch Vimeo Video">
+                                        <i class="fab fa-vimeo text-sm"></i>
                                     </a>
                                 @else
                                     <span class="inline-block w-2 h-2 rounded-full bg-gray-300" title="No video attached"></span>
@@ -111,12 +115,21 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">YouTube URL *</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">YouTube URL</label>
                     <div class="relative flex items-center">
                         <div class="absolute left-3 text-red-500"><i class="fab fa-youtube"></i></div>
-                        <input type="url" name="youtube_url" required value="{{ old('youtube_url') }}" class="w-full pl-9 pr-3 py-2 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://youtube.com/...">
+                        <input type="url" name="youtube_url" value="{{ old('youtube_url') }}" class="w-full pl-9 pr-3 py-2 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://youtube.com/...">
                     </div>
                     @error('youtube_url') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Vimeo URL</label>
+                    <div class="relative flex items-center">
+                        <div class="absolute left-3 text-blue-400"><i class="fab fa-vimeo"></i></div>
+                        <input type="url" name="vimeo_url" value="{{ old('vimeo_url') }}" class="w-full pl-9 pr-3 py-2 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://vimeo.com/...">
+                    </div>
+                    @error('vimeo_url') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="flex gap-4">
