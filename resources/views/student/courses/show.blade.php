@@ -162,4 +162,204 @@
         </div>
     </div>
 </div>
+
+<!-- AI Chat Bot - Floating Button & Slide-Out Panel -->
+<div id="ai-chat" 
+     data-course-id="{{ $course->id }}" 
+     data-lesson-id="{{ $activeLesson->id ?? '' }}"
+     data-chat-url="{{ route('student.courses.chat', [$course->id, $activeLesson->id ?? 0]) }}">
+    
+    <!-- Floating Chat Button -->
+    <button id="chat-toggle-btn" 
+            class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center"
+            onclick="toggleChat()">
+        <i id="chat-icon" class="fas fa-comment-dots text-xl"></i>
+    </button>
+
+    <!-- Chat Panel -->
+    <div id="chat-panel" 
+         class="fixed bottom-24 right-6 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 opacity-0 invisible scale-95 origin-bottom-right">
+        
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-robot text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">AI Tutor</h3>
+                        <p class="text-xs text-indigo-200">Ask anything about this lesson</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="fas fa-robot text-xs text-indigo-600"></i>
+                </div>
+                <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
+                    <p class="text-sm text-gray-700 leading-relaxed">Hi! I'm your AI tutor. Ask me anything about this lesson — I can help clarify concepts, answer questions, or provide additional explanations based on the course material.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Input -->
+        <div class="p-4 border-t border-gray-100 bg-white shrink-0">
+            <form id="chat-form" onsubmit="sendMessage(event)" class="flex items-center gap-2">
+                <input type="text" 
+                       id="chat-input" 
+                       placeholder="Ask a question..." 
+                       class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                       maxlength="2000"
+                       autocomplete="off">
+                <button type="submit" 
+                        id="chat-send-btn"
+                        class="w-10 h-10 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition shadow-sm">
+                    <i class="fas fa-paper-plane text-sm"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let chatOpen = false;
+
+function toggleChat() {
+    const panel = document.getElementById('chat-panel');
+    const icon = document.getElementById('chat-icon');
+    chatOpen = !chatOpen;
+    
+    if (chatOpen) {
+        panel.classList.remove('opacity-0', 'invisible', 'scale-95');
+        panel.classList.add('opacity-100', 'visible', 'scale-100');
+        icon.classList.remove('fa-comment-dots');
+        icon.classList.add('fa-times');
+        document.getElementById('chat-input').focus();
+    } else {
+        panel.classList.remove('opacity-100', 'visible', 'scale-100');
+        panel.classList.add('opacity-0', 'invisible', 'scale-95');
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-comment-dots');
+    }
+}
+
+async function sendMessage(event) {
+    event.preventDefault();
+    
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const messages = document.getElementById('chat-messages');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Disable input
+    input.disabled = true;
+    sendBtn.disabled = true;
+    
+    // Add user message to chat
+    const userDiv = document.createElement('div');
+    userDiv.className = 'flex items-start gap-3 justify-end';
+    userDiv.innerHTML = `
+        <div class="bg-indigo-600 rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-[85%]">
+            <p class="text-sm text-white leading-relaxed">${escapeHtml(message)}</p>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fas fa-user text-xs text-white"></i>
+        </div>
+    `;
+    messages.appendChild(userDiv);
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Clear input
+    input.value = '';
+    
+    // Add loading indicator
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'chat-loading';
+    loadingDiv.className = 'flex items-start gap-3';
+    loadingDiv.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fas fa-robot text-xs text-indigo-600"></i>
+        </div>
+        <div class="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 0.15s"></div>
+                <div class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0.3s"></div>
+            </div>
+        </div>
+    `;
+    messages.appendChild(loadingDiv);
+    messages.scrollTop = messages.scrollHeight;
+    
+    try {
+        const chatContainer = document.getElementById('ai-chat');
+        const response = await fetch(chatContainer.dataset.chatUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ message })
+        });
+        
+        // Remove loading
+        document.getElementById('chat-loading')?.remove();
+        
+        const data = await response.json();
+        
+        // Add bot response
+        const botDiv = document.createElement('div');
+        botDiv.className = 'flex items-start gap-3';
+        botDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fas fa-robot text-xs text-indigo-600"></i>
+            </div>
+            <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
+                <p class="text-sm text-gray-700 leading-relaxed">${escapeHtml(data.reply || 'Sorry, I could not generate a response.')}</p>
+            </div>
+        `;
+        messages.appendChild(botDiv);
+        messages.scrollTop = messages.scrollHeight;
+        
+    } catch (error) {
+        // Remove loading
+        document.getElementById('chat-loading')?.remove();
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'flex items-start gap-3';
+        errorDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fas fa-exclamation-triangle text-xs text-red-600"></i>
+            </div>
+            <div class="bg-red-50 rounded-2xl rounded-tl-sm p-3 shadow-sm border border-red-100 max-w-[85%]">
+                <p class="text-sm text-red-700 leading-relaxed">Sorry, something went wrong. Please try again.</p>
+            </div>
+        `;
+        messages.appendChild(errorDiv);
+        messages.scrollTop = messages.scrollHeight;
+    }
+    
+    // Re-enable input
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.focus();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
 @endsection
