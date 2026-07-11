@@ -35,6 +35,16 @@ class User extends Authenticatable
         return $this->belongsToMany(Course::class);
     }
 
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    public function lessonProgress()
+    {
+        return $this->hasMany(LessonProgress::class);
+    }
+
     public function isAdmin()
     {
         return $this->role === 'admin';

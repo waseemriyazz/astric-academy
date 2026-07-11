@@ -26,11 +26,29 @@ class AdminLessonController extends Controller
             'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
             'order' => 'nullable|integer',
+            'quiz_question' => 'nullable|string',
+            'quiz_option_a' => 'nullable|string',
+            'quiz_option_b' => 'nullable|string',
+            'quiz_option_c' => 'nullable|string',
+            'quiz_option_d' => 'nullable|string',
+            'quiz_correct_answer' => 'nullable|in:a,b,c,d',
         ]);
 
         $validated['order'] = $validated['order'] ?? 0;
         
-        $course->lessons()->create($validated);
+        $lesson = $course->lessons()->create($validated);
+
+        // Create quiz if quiz data is provided
+        if (!empty($validated['quiz_question'])) {
+            $lesson->quiz()->create([
+                'question' => $validated['quiz_question'],
+                'option_a' => $validated['quiz_option_a'],
+                'option_b' => $validated['quiz_option_b'],
+                'option_c' => $validated['quiz_option_c'],
+                'option_d' => $validated['quiz_option_d'],
+                'correct_answer' => $validated['quiz_correct_answer'],
+            ]);
+        }
 
         return redirect()->route('admin.courses.lessons.index', $course)->with('success', 'Lesson added successfully!');
     }
@@ -50,11 +68,35 @@ class AdminLessonController extends Controller
             'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
             'order' => 'nullable|integer',
+            'quiz_question' => 'nullable|string',
+            'quiz_option_a' => 'nullable|string',
+            'quiz_option_b' => 'nullable|string',
+            'quiz_option_c' => 'nullable|string',
+            'quiz_option_d' => 'nullable|string',
+            'quiz_correct_answer' => 'nullable|in:a,b,c,d',
         ]);
 
         $validated['order'] = $validated['order'] ?? 0;
 
         $lesson->update($validated);
+
+        // Update or create quiz
+        if (!empty($validated['quiz_question'])) {
+            $lesson->quiz()->updateOrCreate(
+                ['lesson_id' => $lesson->id],
+                [
+                    'question' => $validated['quiz_question'],
+                    'option_a' => $validated['quiz_option_a'],
+                    'option_b' => $validated['quiz_option_b'],
+                    'option_c' => $validated['quiz_option_c'],
+                    'option_d' => $validated['quiz_option_d'],
+                    'correct_answer' => $validated['quiz_correct_answer'],
+                ]
+            );
+        } else {
+            // If quiz question is empty, delete any existing quiz
+            $lesson->quiz()->delete();
+        }
 
         return redirect()->route('admin.courses.lessons.index', $course)->with('success', 'Lesson updated successfully!');
     }

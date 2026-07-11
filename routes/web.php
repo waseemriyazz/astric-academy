@@ -53,5 +53,7 @@ Route::middleware(['auth'])->prefix('student')->name('student.')->group(function
     Route::get('/dashboard', [\App\Http\Controllers\Student\StudentDashboardController::class, 'index'])->name('dashboard');
     Route::get('/courses/{course}/learn/{lesson?}', [\App\Http\Controllers\Student\StudentCourseController::class, 'show'])->name('courses.show');
     Route::post('/courses/{course}/chat/{lesson}', [\App\Http\Controllers\Student\ChatBotController::class, 'sendMessage'])->name('courses.chat');
+    Route::post('/courses/{course}/quiz/{lesson}', [\App\Http\Controllers\Student\StudentQuizController::class, 'attempt'])->name('courses.quiz.attempt');
+    Route::post('/courses/{course}/lesson/{lesson}/play', [\App\Http\Controllers\Student\StudentProgressController::class, 'markPlayed'])->name('courses.lesson.play');
     Route::get('/settings', [\App\Http\Controllers\Student\StudentSettingsController::class, 'index'])->name('settings');
 });

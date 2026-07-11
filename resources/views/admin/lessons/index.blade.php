@@ -26,6 +26,7 @@
                             <th class="px-6 py-4 w-16">#</th>
                             <th class="px-6 py-4">Lesson Details</th>
                             <th class="px-6 py-4 text-center">Video</th>
+                            <th class="px-6 py-4 text-center">Quiz</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -61,6 +62,17 @@
                                     <span class="inline-block w-2 h-2 rounded-full bg-gray-300" title="No video attached"></span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($lesson->quiz)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-xs font-semibold border border-green-200">
+                                        <i class="fas fa-check-circle text-[10px]"></i> Quiz
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-50 text-gray-400 text-xs font-semibold border border-gray-200">
+                                        <i class="fas fa-times-circle text-[10px]"></i> None
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.courses.lessons.edit', [$course->id, $lesson->id]) }}" class="w-8 h-8 rounded bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm" title="Edit Lesson">
@@ -78,7 +90,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-12 text-center">
+                            <td colspan="5" class="px-6 py-12 text-center">
                                 <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-3 text-gray-400 border border-gray-100">
                                     <i class="fas fa-film text-xl"></i>
                                 </div>
@@ -155,6 +167,51 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Summary <span class="text-gray-400 font-normal">(Optional)</span></label>
                     <textarea name="summary" rows="2" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm resize-none" placeholder="Brief overview or key takeaways...">{{ old('summary') }}</textarea>
                     @error('summary') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                            <i class="fas fa-question-circle text-sm"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-gray-900">Quiz (Optional)</h4>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Question</label>
+                            <input type="text" name="quiz_question" value="{{ old('quiz_question') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="e.g. What is 2 + 2?">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Option A</label>
+                                <input type="text" name="quiz_option_a" value="{{ old('quiz_option_a') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option A">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Option B</label>
+                                <input type="text" name="quiz_option_b" value="{{ old('quiz_option_b') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option B">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Option C</label>
+                                <input type="text" name="quiz_option_c" value="{{ old('quiz_option_c') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option C">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Option D</label>
+                                <input type="text" name="quiz_option_d" value="{{ old('quiz_option_d') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option D">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Correct Answer</label>
+                            <select name="quiz_correct_answer" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+                                <option value="">-- Select --</option>
+                                <option value="a" {{ old('quiz_correct_answer') == 'a' ? 'selected' : '' }}>A</option>
+                                <option value="b" {{ old('quiz_correct_answer') == 'b' ? 'selected' : '' }}>B</option>
+                                <option value="c" {{ old('quiz_correct_answer') == 'c' ? 'selected' : '' }}>C</option>
+                                <option value="d" {{ old('quiz_correct_answer') == 'd' ? 'selected' : '' }}>D</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2 text-sm">
