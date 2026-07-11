@@ -362,4 +362,25 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 </script>
+
+<!-- Footer Support Contact -->
+<div class="mt-6 pt-4 border-t border-gray-200">
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+        <div class="flex items-center justify-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <i class="fas fa-headset text-blue-600"></i>
+            </div>
+            <div class="flex-1 min-w-0 text-center">
+                <h4 class="text-sm font-bold text-gray-900 mb-1">Need Help?</h4>
+                <p class="text-xs text-gray-600 mb-2">Experiencing issues with the course?</p>
+                <a href="mailto:support@astryxacademy.com" 
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                    <i class="fas fa-envelope"></i>
+                    Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
