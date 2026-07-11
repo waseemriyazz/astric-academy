@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @auth data-theme="{{ auth()->user()->theme }}" @endauth>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,6 +14,13 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    </script>
 </head>
 <body class="font-sans antialiased bg-[#F8FAFC] flex h-screen overflow-hidden text-sm">
     
@@ -42,8 +49,8 @@
                 <span class="font-semibold">Profile</span>
             </a>
             
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 border border-transparent">
-                <i class="fas fa-cog w-5 text-center text-lg text-gray-400"></i>
+            <a href="{{ route('student.settings') }}" class="{{ request()->routeIs('student.settings') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 border border-transparent">
+                <i class="fas fa-cog w-5 text-center text-lg {{ request()->routeIs('student.settings') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Settings</span>
             </a>
         </nav>
@@ -140,5 +147,7 @@
             </div>
         </main>
     </div>
+
+    @stack('scripts')
 </body>
 </html>
