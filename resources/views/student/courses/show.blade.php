@@ -79,6 +79,14 @@
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $activeLesson->title }}</h2>
                         <p class="text-sm text-gray-600 leading-relaxed">{{ $activeLesson->description ?? 'No description provided for this lesson.' }}</p>
+                        @if($activeLesson->summary)
+                            <div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-1.5">
+                                    <i class="fas fa-list-check"></i> Summary
+                                </h4>
+                                <p class="text-sm text-gray-700 leading-relaxed">{{ $activeLesson->summary }}</p>
+                            </div>
+                        @endif
                     </div>
                     @if($activeLesson->duration)
                         <div class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">

@@ -21,6 +21,7 @@ class AdminLessonController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'summary' => 'nullable|string',
             'youtube_url' => 'nullable|string',
             'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
@@ -44,6 +45,7 @@ class AdminLessonController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'summary' => 'nullable|string',
             'youtube_url' => 'nullable|string',
             'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',

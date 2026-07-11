@@ -56,6 +56,12 @@
                 @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Summary (Optional)</label>
+                <textarea name="summary" rows="3" class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Brief overview or key takeaways...">{{ old('summary', $lesson->summary) }}</textarea>
+                @error('summary') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <button type="submit" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2">
                 <i class="fas fa-save"></i> Save Changes
             </button>
