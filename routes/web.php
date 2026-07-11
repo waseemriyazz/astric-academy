@@ -11,6 +11,12 @@ Route::redirect('/dashboard', '/admin/dashboard')->name('dashboard');
 // We are removing the default Breeze profile routes as requested
 // Default Laravel pages are being eliminated
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
 require __DIR__.'/auth.php';
 
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
