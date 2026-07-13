@@ -1,5 +1,7 @@
 FROM php:8.4-apache
 
+RUN echo "Labeeb Dockerfile 2026"
+
 RUN apt-get update && apt-get install -y \
     git \
     curl \
