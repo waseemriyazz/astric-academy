@@ -152,30 +152,5 @@
         </div>
     </div>
     
-    <!-- Account Actions Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
-            <h4 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-shield-alt text-red-600"></i>
-                Account Actions
-            </h4>
-        </div>
-        
-        <div class="p-6">
-            <p class="text-sm text-gray-600 mb-4">Manage your account settings and preferences.</p>
-            
-            <div class="flex flex-wrap gap-3">
-                <button onclick="event.preventDefault(); document.getElementById('delete-user-form').submit();" class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 font-semibold rounded-lg hover:bg-red-100 transition border border-red-200 text-sm">
-                    <i class="fas fa-trash-alt"></i>
-                    Delete Account
-                </button>
-            </div>
-            
-            <form id="delete-user-form" action="{{ route('profile.destroy') }}" method="POST" class="hidden">
-                @csrf
-                @method('DELETE')
-            </form>
-        </div>
-    </div>
 </div>
 @endsection
