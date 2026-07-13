@@ -224,7 +224,19 @@
                         </div>
                     </a>
                 @else
-                    <div class="block p-3 rounded-xl border border-gray-100 bg-gray-50/50 cursor-not-allowed opacity-70" title="Complete the previous lesson's quiz to unlock this lesson">
+                    @php
+                        $lastUnlockedIndex = count($unlockedLessonIds) - 1;
+                        $targetLessonId = $unlockedLessonIds[$lastUnlockedIndex] ?? 0;
+                        $targetLesson = $lessons->firstWhere('id', $targetLessonId);
+                    @endphp
+                    <button type="button"
+                        onclick="openLockedModal(
+                            '{{ addslashes($targetLesson->title ?? 'N/A') }}',
+                            '{{ $targetLesson ? route('student.courses.show', [$course->id, $targetLesson->id]) : '#' }}',
+                            '{{ addslashes($lesson->title) }}'
+                        )"
+                        class="block w-full text-left p-3 rounded-xl border border-gray-100 bg-gray-50/50 cursor-pointer opacity-70 hover:opacity-100 hover:bg-gray-100 transition-all duration-200 group"
+                        title="Complete the current lesson to unlock this one">
                         <div class="flex items-start gap-3 pl-1">
                             <div class="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
                                 <i class="fas fa-lock text-xs"></i>
@@ -246,7 +258,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </button>
                 @endif
             @empty
                 <div class="p-6 text-center text-gray-500">
@@ -254,6 +266,65 @@
                     <p class="text-sm font-medium">No lessons have been added to this course yet.</p>
                 </div>
             @endforelse
+        </div>
+    </div>
+</div>
+
+<!-- Locked Lesson Modal -->
+<div id="locked-lesson-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-amber-500 to-orange-600 p-5 text-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-lg">Lesson Locked</h3>
+                    <p class="text-sm text-amber-200">Complete the prerequisites first</p>
+                </div>
+                <button onclick="closeLockedModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition shrink-0">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lock text-2xl text-amber-500"></i>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2" id="locked-modal-title">Lesson is Locked</h4>
+                <p class="text-sm text-gray-600 leading-relaxed" id="locked-modal-description">
+                    You need to complete the current lesson before you can access this one.
+                </p>
+            </div>
+
+            <!-- Prerequisite info box -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                        <i class="fas fa-play text-xs text-gray-500"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-0.5">Prerequisite Lesson</p>
+                        <p class="text-sm font-semibold text-gray-900 truncate" id="locked-modal-prev-lesson">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-2">
+                <a id="locked-modal-go-btn" href="#" 
+                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    <i class="fas fa-arrow-right"></i> Go to Current Lesson
+                </a>
+                <button onclick="closeLockedModal()" 
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg transition">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -517,6 +588,31 @@ function submitQuizAnswer(answer) {
 }
 </style>
 <script>
+// Locked lesson modal functions
+function openLockedModal(prevLessonTitle, prevLessonUrl, lessonTitle) {
+    document.getElementById('locked-modal-title').textContent = '"' + lessonTitle + '" is Locked';
+    document.getElementById('locked-modal-prev-lesson').textContent = prevLessonTitle;
+    document.getElementById('locked-modal-go-btn').href = prevLessonUrl;
+    
+    const modal = document.getElementById('locked-lesson-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeLockedModal() {
+    const modal = document.getElementById('locked-lesson-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Close locked modal on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('locked-lesson-modal');
+    if (modal && e.target === modal) {
+        closeLockedModal();
+    }
+});
+
 // Summary toggle function
 function toggleSummary() {
     const summaryContent = document.getElementById('summary-content');
