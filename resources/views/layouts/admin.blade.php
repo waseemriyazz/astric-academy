@@ -54,44 +54,9 @@
                 <span class="font-semibold">Enrolled Courses</span>
             </a>
             
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-tasks w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Assignments</span>
-            </a>
-            
             <a href="{{ route('admin.certificates.index') }}" class="{{ request()->routeIs('admin.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-certificate w-5 text-center text-lg {{ request()->routeIs('admin.certificates.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Certificates</span>
-            </a>
-            
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-credit-card w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Payments</span>
-            </a>
-            
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-star w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Reviews</span>
-            </a>
-            
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-chart-bar w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Reports</span>
-            </a>
-            
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-ticket-alt w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Coupons</span>
-            </a>
-            
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-bullhorn w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Announcements</span>
-            </a>
-            
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 border border-transparent">
-                <i class="fas fa-cog w-5 text-center text-lg text-gray-400"></i>
-                <span class="font-semibold">Settings</span>
             </a>
         </nav>
         
