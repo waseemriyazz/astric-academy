@@ -58,5 +58,45 @@
             </button>
         </div>
     </form>
+
+    <!-- Certificate Configuration Section -->
+    <div class="mt-8 pt-8 border-t border-gray-200">
+        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-certificate text-indigo-600"></i> Certificate Configuration
+        </h3>
+        
+        <form action="{{ route('admin.courses.certificate-config', $course->id) }}" method="POST" class="space-y-5">
+            @csrf
+            
+            <p class="text-sm text-gray-500 mb-4">
+                Customize how certificates will look for students who complete this course.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Signature Name</label>
+                    <input type="text" name="signature_name" 
+                           value="{{ old('signature_name', $course->certificate_config['signature_name'] ?? 'Astryx Academy') }}" 
+                           class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="e.g. John Doe">
+                    @error('signature_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Signature Title</label>
+                    <input type="text" name="signature_title" 
+                           value="{{ old('signature_title', $course->certificate_config['signature_title'] ?? 'Authorized Signature') }}" 
+                           class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="e.g. Director of Education">
+                    @error('signature_title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-medium text-white transition shadow-sm">
+                    <i class="fas fa-save"></i> Update Certificate Config
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

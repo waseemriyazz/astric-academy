@@ -39,8 +39,8 @@
                 <span class="font-semibold">Dashboard</span>
             </a>
             
-            <a href="#" class="hover:bg-gray-50 hover:text-gray-900 text-gray-500 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-certificate w-5 text-center text-lg text-gray-400"></i>
+            <a href="{{ route('student.certificates.index') }}" class="{{ request()->routeIs('student.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+                <i class="fas fa-certificate w-5 text-center text-lg {{ request()->routeIs('student.certificates.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Certificates</span>
             </a>
             
