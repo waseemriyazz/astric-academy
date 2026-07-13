@@ -101,14 +101,21 @@
                     <p class="text-sm text-gray-600 leading-relaxed">{{ $activeLesson->description ?? 'No description provided for this lesson.' }}</p>
                     
                     @if($activeLesson->summary)
-                        <div class="mt-4">
-                            <button onclick="toggleSummary()" class="summary-toggle-btn inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-lg transition border border-indigo-200">
-                                <i class="fas fa-list-check"></i>
-                                <span>Show Summary</span>
-                                <i class="fas fa-chevron-down text-xs transition-transform" id="summary-chevron"></i>
-                            </button>
-                            <div id="summary-content" class="hidden mt-3 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                                <p class="text-sm text-gray-700 leading-relaxed">{{ $activeLesson->summary }}</p>
+                        <div class="mt-4 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+                                    <i class="fas fa-list-check text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-1">Key Takeaways</h4>
+                                    <div class="text-sm text-gray-600 leading-relaxed">
+                                        {!! \Illuminate\Support\Str::markdown(\Illuminate\Support\Str::limit($activeLesson->summary, 180)) !!}
+                                    </div>
+                                    <button onclick="openSummaryModal()" class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                                        Read Full Summary
+                                        <i class="fas fa-arrow-right text-[10px]"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -269,6 +276,46 @@
         </div>
     </div>
 </div>
+
+<!-- Summary Modal -->
+@if($activeLesson && $activeLesson->summary)
+<div id="summary-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-list-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Key Takeaways</h3>
+                        <p class="text-sm text-indigo-200">Full lesson summary</p>
+                    </div>
+                </div>
+                <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body - Scrollable -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <div class="summary-markdown prose prose-sm max-w-none">
+                {!! \Illuminate\Support\Str::markdown($activeLesson->summary) !!}
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-end">
+            <button onclick="closeSummaryModal()" 
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                <i class="fas fa-check"></i> Got it
+            </button>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Locked Lesson Modal -->
 <div id="locked-lesson-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
@@ -586,6 +633,54 @@ function submitQuizAnswer(answer) {
 .btn-view-result:hover {
     background-color: #15803d !important;
 }
+
+/* Markdown rendered content styles */
+.summary-markdown h1,
+.summary-markdown h2,
+.summary-markdown h3,
+.summary-markdown h4 {
+    @apply font-bold text-gray-900 mt-5 mb-2;
+}
+.summary-markdown h1 { @apply text-xl; }
+.summary-markdown h2 { @apply text-lg; }
+.summary-markdown h3 { @apply text-base; }
+.summary-markdown h4 { @apply text-sm; }
+.summary-markdown p {
+    @apply text-gray-700 leading-relaxed mb-3;
+}
+.summary-markdown ul,
+.summary-markdown ol {
+    @apply pl-5 mb-3 text-gray-700;
+}
+.summary-markdown ul { @apply list-disc; }
+.summary-markdown ol { @apply list-decimal; }
+.summary-markdown li {
+    @apply mb-1 leading-relaxed;
+}
+.summary-markdown strong {
+    @apply font-bold text-gray-900;
+}
+.summary-markdown em {
+    @apply italic;
+}
+.summary-markdown code {
+    @apply bg-gray-100 text-sm px-1.5 py-0.5 rounded text-indigo-600 font-mono;
+}
+.summary-markdown pre {
+    @apply bg-gray-900 text-gray-100 rounded-xl p-4 mb-4 overflow-x-auto text-sm font-mono leading-relaxed;
+}
+.summary-markdown pre code {
+    @apply bg-transparent p-0 text-gray-100;
+}
+.summary-markdown blockquote {
+    @apply border-l-4 border-indigo-300 pl-4 py-1 mb-3 text-gray-600 italic bg-indigo-50/50 rounded-r-lg;
+}
+.summary-markdown hr {
+    @apply border-gray-200 my-4;
+}
+.summary-markdown a {
+    @apply text-indigo-600 hover:text-indigo-700 underline;
+}
 </style>
 <script>
 // Locked lesson modal functions
@@ -613,24 +708,26 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Summary toggle function
-function toggleSummary() {
-    const summaryContent = document.getElementById('summary-content');
-    const summaryChevron = document.getElementById('summary-chevron');
-    const summaryBtn = document.querySelector('.summary-toggle-btn span');
-    
-    if (summaryContent) {
-        if (summaryContent.classList.contains('hidden')) {
-            summaryContent.classList.remove('hidden');
-            if (summaryChevron) summaryChevron.style.transform = 'rotate(180deg)';
-            if (summaryBtn) summaryBtn.textContent = 'Hide Summary';
-        } else {
-            summaryContent.classList.add('hidden');
-            if (summaryChevron) summaryChevron.style.transform = 'rotate(0deg)';
-            if (summaryBtn) summaryBtn.textContent = 'Show Summary';
-        }
-    }
+// Summary modal functions
+function openSummaryModal() {
+    const modal = document.getElementById('summary-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
+
+function closeSummaryModal() {
+    const modal = document.getElementById('summary-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Close summary modal on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('summary-modal');
+    if (modal && e.target === modal) {
+        closeSummaryModal();
+    }
+});
 
 let chatOpen = false;
 
