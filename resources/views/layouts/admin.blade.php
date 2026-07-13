@@ -132,10 +132,18 @@
                 </div>
 
                 <!-- Notifications -->
-                <button class="relative text-gray-500 hover:text-blue-600 transition">
-                    <i class="far fa-bell text-xl"></i>
-                    <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 border-2 border-white box-content transform translate-x-1 -translate-y-1"></span>
-                </button>
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="relative text-gray-500 hover:text-blue-600 transition">
+                        <i class="far fa-bell text-xl"></i>
+                    </button>
+                    <!-- Dropdown -->
+                    <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+                        <div class="p-6 text-center text-gray-500">
+                            <i class="far fa-bell text-3xl text-gray-300 mb-3 block"></i>
+                            <p class="text-sm font-medium">No new notification</p>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Profile -->
                 <div class="flex items-center gap-3 pl-2 sm:pl-4 border-l border-gray-200">
