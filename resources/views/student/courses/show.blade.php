@@ -492,6 +492,25 @@ function submitQuizAnswer(answer) {
         feedback.classList.remove('hidden');
 
         if (data.is_correct) {
+            let certificateHtml = '';
+            if (data.certificate_generated) {
+                certificateHtml = `
+                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-award text-yellow-600"></i>
+                            </div>
+                            <div class="text-left">
+                                <h5 class="text-sm font-bold text-yellow-800">Congratulations!</h5>
+                                <p class="text-xs text-yellow-600">You've completed all lessons! Your certificate is ready.</p>
+                            </div>
+                        </div>
+                        <a href="${data.certificate_url}" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition">
+                            <i class="fas fa-download"></i> Download Certificate
+                        </a>
+                    </div>
+                `;
+            }
             feedback.innerHTML = `
                 <div class="p-4 bg-green-50 border border-green-200 rounded-xl text-center">
                     <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
@@ -499,7 +518,8 @@ function submitQuizAnswer(answer) {
                     </div>
                     <h4 class="text-lg font-bold text-green-800 mb-1">Correct!</h4>
                     <p class="text-sm text-green-600 mb-4">Great job! You've unlocked the next lesson.</p>
-                    <button onclick="closeQuizModal()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-sm">
+                    ${certificateHtml}
+                    <button onclick="closeQuizModal()" class="mt-3 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-sm">
                         <i class="fas fa-arrow-right"></i> Continue
                     </button>
                 </div>
