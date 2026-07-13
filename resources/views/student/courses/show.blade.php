@@ -152,10 +152,6 @@
                                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
                                     <i class="fas fa-bolt"></i> Play Quick Quiz
                                 </a>
-                                <button onclick="openQuizModal()" 
-                                        class="take-quiz-btn inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
-                                    <i class="fas fa-pen"></i> Take Quiz
-                                </button>
                             @endif
                         </div>
                     </div>
