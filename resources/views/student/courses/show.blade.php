@@ -98,12 +98,27 @@
             <div class="flex items-start justify-between gap-4">
                 <div class="flex-1 min-w-0">
                     <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $activeLesson->title }}</h2>
-                    <div class="relative">
-                        <p class="text-sm text-gray-600 leading-relaxed line-clamp-3" id="description-text">{{ $activeLesson->description ?? 'No description provided for this lesson.' }}</p>
-                        <button id="show-more-desc-btn" onclick="openDescriptionModal()" class="mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition inline-flex items-center gap-1">
-                            Show more <i class="fas fa-chevron-right text-[10px]" style="font-weight: 900;"></i>
-                        </button>
-                    </div>
+                    @if($activeLesson->description)
+                        <div class="mt-4 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-xl">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
+                                    <i class="fas fa-align-left text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-1">Description</h4>
+                                    <div class="text-sm text-gray-600 leading-relaxed">
+                                        {{ \Illuminate\Support\Str::limit($activeLesson->description, 80) }}
+                                    </div>
+                                    @if(strlen($activeLesson->description) > 80)
+                                        <button onclick="openDescriptionModal()" class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition">
+                                            Show more
+                                            <i class="fas fa-arrow-right text-[10px]"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                     
                     @if($activeLesson->summary)
                         <div class="mt-4 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
@@ -287,6 +302,46 @@
 </div>
 
 <!-- Summary Modal -->
+@if($activeLesson && $activeLesson->description)
+<!-- Description Modal -->
+<div id="description-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-cyan-600 p-5 text-white shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-align-left"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Lesson Description</h3>
+                        <p class="text-sm text-blue-200">Full description of this lesson</p>
+                    </div>
+                </div>
+                <button onclick="closeDescriptionModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body - Scrollable -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                {{ $activeLesson->description }}
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-end">
+            <button onclick="closeDescriptionModal()" 
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                <i class="fas fa-check"></i> Got it
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 @if($activeLesson && $activeLesson->summary)
 <div id="summary-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -447,8 +502,9 @@
             </div>
         </div>
     </div>
-</div>
+        </div>
 
+        @push('scripts')
         <script>
         let quizSubmitting = false;
 
@@ -588,8 +644,8 @@ function submitQuizAnswer(answer) {
     });
 }
         </script>
+        @endpush
     @endif
-@endpush
 
 
 <!-- AI Chat Bot - Floating Button & Slide-Out Panel -->
@@ -755,6 +811,27 @@ document.addEventListener('click', function(e) {
     const modal = document.getElementById('summary-modal');
     if (modal && e.target === modal) {
         closeSummaryModal();
+    }
+});
+
+// Description modal functions
+function openDescriptionModal() {
+    const modal = document.getElementById('description-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeDescriptionModal() {
+    const modal = document.getElementById('description-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Close description modal on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('description-modal');
+    if (modal && e.target === modal) {
+        closeDescriptionModal();
     }
 });
 
