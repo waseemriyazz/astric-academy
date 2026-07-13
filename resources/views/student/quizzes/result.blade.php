@@ -99,12 +99,6 @@
                 </div>
             </div>
 
-            <!-- Timestamp -->
-            <div class="flex items-center justify-center gap-2 text-xs text-gray-500 mb-6">
-                <i class="far fa-clock"></i>
-                <span>Attempted on {{ $attempt->created_at->format('F j, Y g:i A') }}</span>
-            </div>
-
             <!-- Actions -->
             <div class="flex items-center justify-center gap-3">
                 <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition text-sm">
