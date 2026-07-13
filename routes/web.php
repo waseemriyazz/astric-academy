@@ -57,5 +57,18 @@ Route::middleware(['auth'])->prefix('student')->name('student.')->group(function
     Route::get('/courses/{course}/quiz/{lesson}/play', [\App\Http\Controllers\Student\StudentQuizController::class, 'play'])->name('quizzes.play');
     Route::get('/courses/{course}/quiz/{lesson}/result/{attempt}', [\App\Http\Controllers\Student\StudentQuizController::class, 'result'])->name('quizzes.result');
     Route::post('/courses/{course}/lesson/{lesson}/play', [\App\Http\Controllers\Student\StudentProgressController::class, 'markPlayed'])->name('courses.lesson.play');
+    Route::get('/certificates', [\App\Http\Controllers\Student\StudentCertificateController::class, 'index'])->name('certificates.index');
+    Route::get('/certificates/{course}', [\App\Http\Controllers\Student\StudentCertificateController::class, 'show'])->name('certificates.show');
+    Route::get('/certificates/{course}/download', [\App\Http\Controllers\Student\StudentCertificateController::class, 'download'])->name('certificates.download');
+    Route::post('/certificates/{course}/generate', [\App\Http\Controllers\Student\StudentCertificateController::class, 'checkAndGenerate'])->name('certificates.generate');
     Route::get('/settings', [\App\Http\Controllers\Student\StudentSettingsController::class, 'index'])->name('settings');
+});
+
+// Admin Certificate Routes
+Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/certificates', [\App\Http\Controllers\Admin\AdminCertificateController::class, 'index'])->name('certificates.index');
+    Route::post('/certificates/issue', [\App\Http\Controllers\Admin\AdminCertificateController::class, 'issue'])->name('certificates.issue');
+    Route::put('/certificates/{certificate}/revoke', [\App\Http\Controllers\Admin\AdminCertificateController::class, 'revoke'])->name('certificates.revoke');
+    Route::get('/certificates/{certificate}/download', [\App\Http\Controllers\Admin\AdminCertificateController::class, 'download'])->name('certificates.download');
+    Route::post('/courses/{course}/certificate-config', [\App\Http\Controllers\Admin\AdminCertificateController::class, 'updateConfig'])->name('courses.certificate-config');
 });
