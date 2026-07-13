@@ -22,6 +22,9 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
+        // Call SuperUserSeeder to create the super admin user
+        $this->call(SuperUserSeeder::class);
+
         Course::create([
             'title' => 'Web Development Bootcamp',
             'description' => 'Learn full-stack web development from scratch.',

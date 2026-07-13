@@ -69,37 +69,59 @@ PROMPT;
 
         if (!$apiKey) {
             Log::error('Gemini API key not configured');
-            return response()->json(['error' => 'AI service not configured.'], 500);
+            return response()->json(['error' => 'AI service not configured. Please add GEMINI_API_KEY to your .env file.'], 500);
         }
 
         try {
-            $response = Http::timeout(30)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={$apiKey}", [
-                'contents' => [
-                    [
-                        'role' => 'user',
-                        'parts' => [
-                            ['text' => $systemPrompt . "\n\nStudent's question: " . $validated['message']]
-                        ]
-                    ]
-                ],
-                'systemInstruction' => [
-                    'parts' => [
-                        ['text' => 'You are a helpful AI tutor for an online course platform. Respond in a friendly, educational manner.']
-                    ]
-                ],
-                'generationConfig' => [
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => 1024,
-                ]
-            ]);
+            // Use gemini-1.5-flash as the model (stable and widely available)
+         $modelName = 'gemini-2.5-flash';
+$url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelName}:generateContent?key={$apiKey}";
+
+Log::info('Calling Gemini API', ['model' => $modelName, 'url' => $url]);
+
+$response = Http::timeout(30)->post($url, [
+    'contents' => [
+        [
+            'role' => 'user',
+            'parts' => [
+                ['text' => $systemPrompt . "\n\nStudent's question: " . $validated['message']]
+            ]
+        ]
+    ],
+    'generationConfig' => [
+        'temperature' => 0.7,
+        'maxOutputTokens' => 1024,
+    ]
+]);
 
             if ($response->failed()) {
-                Log::error('Gemini API error', ['status' => $response->status(), 'body' => $response->body()]);
-                return response()->json(['error' => 'AI service temporarily unavailable.'], 500);
+                $errorBody = $response->body();
+                Log::error('Gemini API error', [
+                    'status' => $response->status(), 
+                    'body' => $errorBody,
+                    'model' => $modelName
+                ]);
+                
+                // Try to parse error message
+                $errorMessage = 'AI service temporarily unavailable.';
+                if ($response->status() === 404) {
+                    $errorMessage = "AI model '{$modelName}' not found. Please check the model name.";
+                } elseif ($response->status() === 400) {
+                    $errorMessage = 'Invalid request to AI service.';
+                }
+                
+                return response()->json(['error' => $errorMessage], 500);
             }
 
             $data = $response->json();
-            $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Sorry, I could not generate a response.';
+            Log::info('Gemini API response', ['data' => $data]);
+            
+            $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            
+            if (!$reply) {
+                Log::warning('Empty reply from Gemini', ['data' => $data]);
+                return response()->json(['error' => 'AI service returned an empty response.'], 500);
+            }
 
             // Log the AI reply
             Log::info('Chat Reply', [

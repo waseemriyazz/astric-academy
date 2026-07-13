@@ -1,10 +1,48 @@
 @extends('layouts.student')
 
-@section('header', 'Welcome back, ' . explode(' ', Auth::user()->name)[0] . '!')
+@section('header', 'Dashboard')
 
 @section('content')
-<div class="mb-8">
-    <p class="text-gray-500 text-base">Here is an overview of your active courses. Pick up right where you left off.</p>
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Courses Enrolled -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <i class="fas fa-book-open text-2xl text-blue-600"></i>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500 font-medium mb-1">Courses Enrolled</p>
+        <p class="text-3xl font-bold text-gray-900">{{ $totalCourses }}</p>
+    </div>
+
+    <!-- Lessons Completed -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <i class="fas fa-check-circle text-2xl text-green-600"></i>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500 font-medium mb-1">Lessons Completed</p>
+        <p class="text-3xl font-bold text-gray-900">{{ $completedLessons }} <span class="text-lg text-gray-400">/ {{ $totalLessons }}</span></p>
+    </div>
+
+    <!-- Overall Progress -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                <i class="fas fa-chart-line text-2xl text-purple-600"></i>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500 font-medium mb-1">Overall Progress</p>
+        <p class="text-3xl font-bold text-gray-900">{{ $overallProgress }}%</p>
+    </div>
+</div>
+
+<!-- Courses Section -->
+<div class="mb-6">
+    <h3 class="text-xl font-bold text-gray-900 mb-2">My Courses</h3>
+    <p class="text-gray-500 text-base">Continue learning from where you left off. Track your progress across all enrolled courses.</p>
 </div>
 
 @if($courses->isEmpty())
@@ -53,23 +91,23 @@
                     {{ $course->description ?? 'Start mastering the skills required for ' . $course->title . ' with our comprehensive curriculum.' }}
                 </p>
                 
-                <!-- Progress placeholder -->
+                <!-- Progress -->
                 <div class="mt-auto mb-6">
                     <div class="flex items-center justify-between text-xs font-semibold text-gray-500 mb-2">
                         <span>Course Progress</span>
-                        <span class="text-indigo-600">0%</span>
+                        <span class="text-indigo-600">{{ $course->progress_percentage }}%</span>
                     </div>
                     <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-indigo-500 rounded-full" style="width: 0%"></div>
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: {{ $course->progress_percentage }}%"></div>
                     </div>
                     <div class="text-xs text-gray-400 mt-2 font-medium flex items-center gap-1.5">
-                        <i class="fas fa-list-ul"></i> {{ $course->lessons_count }} Lessons total
+                        <i class="fas fa-list-ul"></i> {{ $course->completed_lessons }} / {{ $course->lessons->count() }} Lessons completed
                     </div>
                 </div>
                 
                 <!-- Action Button -->
                 <a href="{{ route('student.courses.show', $course->id) }}" class="block w-full text-center py-3 px-4 bg-gray-50 hover:bg-indigo-600 text-gray-700 hover:text-white font-semibold rounded-xl transition-colors duration-300 border border-gray-200 hover:border-indigo-600">
-                    Start Learning
+                    Continue Learning
                 </a>
             </div>
         </div>

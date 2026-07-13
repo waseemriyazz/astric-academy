@@ -12,9 +12,57 @@ class StudentDashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Fetch courses the student is enrolled in with their lesson counts
-        $courses = $user->courses()->withCount('lessons')->get();
+        // Fetch courses the student is enrolled in with lessons
+        $courses = $user->courses()->with(['lessons' => function ($query) {
+            $query->orderBy('order');
+        }])->get();
         
-        return view('student.dashboard', compact('courses'));
+        // Calculate overall statistics
+        $totalCourses = $courses->count();
+        $totalLessons = 0;
+        $completedLessons = 0;
+        
+        foreach ($courses as $course) {
+            $courseLessons = $course->lessons;
+            $totalLessons += $courseLessons->count();
+            
+            // Get completed lessons for this course (based on quiz completion)
+            $courseCompletedLessons = $courseLessons->filter(function ($lesson) use ($user) {
+                // Lesson is complete if:
+                // 1. It has a quiz and user passed it (is_correct = true)
+                // 2. OR it has no quiz (automatically complete)
+                if ($lesson->quiz) {
+                    return \App\Models\QuizAttempt::where('quiz_id', $lesson->quiz->id)
+                        ->where('user_id', $user->id)
+                        ->where('is_correct', true)
+                        ->exists();
+                }
+                return true;
+            });
+            
+            $completedLessons += $courseCompletedLessons->count();
+            
+            // Calculate course progress percentage
+            $courseProgress = $courseLessons->count() > 0 
+                ? round(($courseCompletedLessons->count() / $courseLessons->count()) * 100) 
+                : 0;
+            
+            // Attach progress data to course
+            $course->progress_percentage = $courseProgress;
+            $course->completed_lessons = $courseCompletedLessons->count();
+        }
+        
+        // Calculate overall progress
+        $overallProgress = $totalLessons > 0 
+            ? round(($completedLessons / $totalLessons) * 100) 
+            : 0;
+        
+        return view('student.dashboard', compact(
+            'courses',
+            'totalCourses',
+            'totalLessons',
+            'completedLessons',
+            'overallProgress'
+        ));
     }
 }

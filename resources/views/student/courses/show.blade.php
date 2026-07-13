@@ -32,7 +32,7 @@
                         <iframe 
                             id="video-player"
                             class="absolute top-0 left-0 w-full h-full"
-                            src="https://www.youtube.com/embed/{{ $youtubeId }}?rel=0&modestbranding=1&showinfo=0&enablejsapi=1" 
+                            src="https://www.youtube.com/embed/{{ $youtubeId }}?rel=0&modestbranding=1&showinfo=0&enablejsapi=1&origin={{ url()->current() }}" 
                             title="YouTube video player" 
                             frameborder="0" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
@@ -94,17 +94,22 @@
 
         <!-- Lesson Info Bar -->
         @if($activeLesson)
-        <div class="bg-white p-6 border-t border-gray-200">
+        <div class="bg-white p-6 border-t border-gray-200 overflow-y-auto max-h-[calc(100vh-400px)]">
             <div class="flex items-start justify-between gap-4">
-                <div>
+                <div class="flex-1 min-w-0">
                     <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $activeLesson->title }}</h2>
                     <p class="text-sm text-gray-600 leading-relaxed">{{ $activeLesson->description ?? 'No description provided for this lesson.' }}</p>
+                    
                     @if($activeLesson->summary)
-                        <div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-1.5">
-                                <i class="fas fa-list-check"></i> Summary
-                            </h4>
-                            <p class="text-sm text-gray-700 leading-relaxed">{{ $activeLesson->summary }}</p>
+                        <div class="mt-4">
+                            <button onclick="toggleSummary()" class="summary-toggle-btn inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-lg transition border border-indigo-200">
+                                <i class="fas fa-list-check"></i>
+                                <span>Show Summary</span>
+                                <i class="fas fa-chevron-down text-xs transition-transform" id="summary-chevron"></i>
+                            </button>
+                            <div id="summary-content" class="hidden mt-3 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                                <p class="text-sm text-gray-700 leading-relaxed">{{ $activeLesson->summary }}</p>
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -118,42 +123,33 @@
             <!-- Quiz Section -->
             @if($activeLesson->quiz)
                 <div class="mt-6 pt-6 border-t border-gray-200" id="quiz-section-wrapper">
-                    <!-- Locked prompt (visible when video not played yet) -->
-                    <div id="quiz-prompt" class="{{ $videoPlayed ? 'hidden' : '' }}">
-                        <div class="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                                <i class="fas fa-play-circle text-amber-600"></i>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+                                <i class="fas fa-question-circle text-sm"></i>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-amber-800">Quiz Locked</h4>
-                                <p class="text-xs text-amber-600">Watch the complete video to unlock the quiz for this lesson.</p>
+                                <h4 class="text-sm font-bold text-gray-900">Lesson Quiz</h4>
+                                <p class="text-xs text-gray-500">Attempt this quiz to unlock the next lesson</p>
                             </div>
                         </div>
-                    </div>
-                    <!-- Quiz content (visible only when video has been played) -->
-                    <div id="quiz-content" class="{{ $videoPlayed ? '' : 'hidden' }}">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
-                                    <i class="fas fa-question-circle text-sm"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-bold text-gray-900">Lesson Quiz</h4>
-                                    <p class="text-xs text-gray-500">Attempt this quiz to unlock the next lesson</p>
-                                </div>
-                            </div>
-                            <div class="quiz-section-actions">
-                                @if($quizAttempted)
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 text-green-600 text-xs font-semibold border border-green-200">
-                                        <i class="fas fa-check-circle"></i> Attempted
-                                    </span>
-                                @else
-                                    <button onclick="openQuizModal()" 
-                                            class="take-quiz-btn inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
-                                        <i class="fas fa-pen"></i> Take Quiz
-                                    </button>
-                                @endif
-                            </div>
+                        <div class="quiz-section-actions flex items-center gap-2 flex-wrap">
+                            @if($quizAttempt && $quizAttempt->id)
+                                <a href="{{ route('student.quizzes.result', [$course->id, $activeLesson->id, $quizAttempt->id]) }}" 
+                                   class="btn-view-result inline-flex items-center justify-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto"
+                                   style="background-color: #16a34a !important;">
+                                    <i class="fas fa-eye"></i> View Result
+                                </a>
+                            @else
+                                <a href="{{ route('student.quizzes.play', [$course->id, $activeLesson->id]) }}" 
+                                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
+                                    <i class="fas fa-bolt"></i> Play Quick Quiz
+                                </a>
+                                <button onclick="openQuizModal()" 
+                                        class="take-quiz-btn inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
+                                    <i class="fas fa-pen"></i> Take Quiz
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -174,10 +170,25 @@
                 @php
                     $isActive = $activeLesson && $activeLesson->id === $lesson->id;
                     $isUnlocked = in_array($lesson->id, $unlockedLessonIds);
+                    
+                    // Check if lesson is completed based on quiz status
+                    $isCompleted = false;
+                    if ($lesson->quiz) {
+                        // Has quiz - check if passed
+                        $quizAttempt = \App\Models\QuizAttempt::where('quiz_id', $lesson->quiz->id)
+                            ->where('user_id', auth()->id())
+                            ->where('is_correct', true)
+                            ->exists();
+                        $isCompleted = $quizAttempt;
+                    } else {
+                        // No quiz - mark as complete when accessed
+                        $isCompleted = true;
+                    }
                 @endphp
                 
                 @if($isUnlocked)
                     <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" 
+                       data-lesson-id="{{ $lesson->id }}"
                        class="block p-3 rounded-xl border transition-all duration-200 group relative overflow-hidden {{ $isActive ? 'bg-indigo-50 border-indigo-200 shadow-[0_2px_8px_rgb(79,70,229,0.1)]' : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200' }}">
                        
                        @if($isActive)
@@ -185,8 +196,10 @@
                        @endif
                         
                         <div class="flex items-start gap-3 pl-1">
-                            <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center {{ $isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-500' }} transition-colors">
-                                @if($isActive)
+                            <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center {{ $isCompleted ? 'bg-green-100 text-green-600' : ($isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-500') }} transition-colors">
+                                @if($isCompleted)
+                                    <i class="fas fa-check text-xs"></i>
+                                @elseif($isActive)
                                     <i class="fas fa-play text-[10px] ml-0.5"></i>
                                 @else
                                     <span class="text-xs font-bold">{{ $loop->iteration }}</span>
@@ -247,10 +260,10 @@
 
 <!-- Quiz Modal -->
 @if($activeLesson && $activeLesson->quiz)
-<div id="quiz-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg mx-4 overflow-hidden">
+<div id="quiz-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 text-white">
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -267,26 +280,31 @@
             </div>
         </div>
 
-        <!-- Modal Body -->
-        <div class="p-6">
-            <p class="text-lg font-semibold text-gray-900 mb-6">{{ $activeLesson->quiz->question }}</p>
+        <!-- Modal Body - Scrollable -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <p class="text-lg font-semibold text-gray-900 mb-2">{{ $activeLesson->quiz->question }}</p>
+            <p class="text-sm text-gray-500 mb-6">Select the correct answer below</p>
 
             <div id="quiz-options" class="space-y-3">
-                <button onclick="submitQuizAnswer('a')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="a">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">A</span>
-                    <span class="text-sm text-gray-700 font-medium">{{ $activeLesson->quiz->option_a }}</span>
+                <button onclick="submitQuizAnswer('a')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="a">
+                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">A</span>
+                    <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_a }}</span>
+                    <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
-                <button onclick="submitQuizAnswer('b')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="b">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">B</span>
-                    <span class="text-sm text-gray-700 font-medium">{{ $activeLesson->quiz->option_b }}</span>
+                <button onclick="submitQuizAnswer('b')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="b">
+                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">B</span>
+                    <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_b }}</span>
+                    <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
-                <button onclick="submitQuizAnswer('c')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="c">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">C</span>
-                    <span class="text-sm text-gray-700 font-medium">{{ $activeLesson->quiz->option_c }}</span>
+                <button onclick="submitQuizAnswer('c')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="c">
+                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">C</span>
+                    <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_c }}</span>
+                    <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
-                <button onclick="submitQuizAnswer('d')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="d">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">D</span>
-                    <span class="text-sm text-gray-700 font-medium">{{ $activeLesson->quiz->option_d }}</span>
+                <button onclick="submitQuizAnswer('d')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="d">
+                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">D</span>
+                    <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_d }}</span>
+                    <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
             </div>
 
@@ -308,13 +326,14 @@
 let quizSubmitting = false;
 
 function openQuizModal() {
-    document.getElementById('quiz-modal').classList.remove('hidden');
-    document.getElementById('quiz-modal').classList.add('flex');
+    const modal = document.getElementById('quiz-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
     document.getElementById('quiz-feedback').classList.add('hidden');
     // Reset option styles
     document.querySelectorAll('.quiz-option').forEach(el => {
         el.classList.remove('border-green-500', 'bg-green-50', 'border-red-500', 'bg-red-50', 'pointer-events-none');
-        el.classList.add('border-gray-200', 'hover:border-purple-400', 'hover:bg-purple-50');
+        el.classList.add('border-gray-200', 'hover:border-purple-500', 'hover:bg-purple-50', 'cursor-pointer');
     });
     quizSubmitting = false;
 }
@@ -330,12 +349,14 @@ function submitQuizAnswer(answer) {
 
     // Disable all options
     document.querySelectorAll('.quiz-option').forEach(el => {
-        el.classList.add('pointer-events-none');
-        el.classList.remove('hover:border-purple-400', 'hover:bg-purple-50');
+        el.classList.add('pointer-events-none', 'cursor-not-allowed');
+        el.classList.remove('hover:border-purple-500', 'hover:bg-purple-50', 'cursor-pointer');
     });
 
-    // Highlight selected
-    document.querySelector(`.quiz-option[data-option="${answer}"]`).classList.add('border-purple-500', 'bg-purple-50');
+    // Highlight selected with animation
+    const selectedOption = document.querySelector(`.quiz-option[data-option="${answer}"]`);
+    selectedOption.classList.remove('border-purple-500', 'bg-purple-50');
+    selectedOption.classList.add('border-purple-600', 'bg-purple-100', 'scale-[1.02]', 'shadow-md');
 
     // Show loading
     document.getElementById('quiz-loading').classList.remove('hidden');
@@ -369,21 +390,25 @@ function submitQuizAnswer(answer) {
                     </button>
                 </div>
             `;
-            // Mark as attempted in the UI
+            // Mark as attempted in the UI with View Result button
             document.querySelector('.take-quiz-btn')?.remove();
             document.querySelector('.quiz-section-actions')?.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 text-green-600 text-xs font-semibold border border-green-200">
-                    <i class="fas fa-check-circle"></i> Attempted
-                </span>
+                <a href="{{ route('student.quizzes.result', [$course->id, $activeLesson->id, 'PLACEHOLDER']) }}" 
+                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
+                    <i class="fas fa-eye"></i> View Result
+                </a>
             `;
+            // Fix the placeholder ID in the URL after page reload
             // Reload page after a brief delay to refresh unlocked state
             setTimeout(() => { window.location.reload(); }, 2000);
         } else {
             const correctLetter = data.correct_answer.toUpperCase();
-            const correctText = document.querySelector(`.quiz-option[data-option="${data.correct_answer}"]`).querySelector('span:last-child').textContent;
+            // Get the text content from the option (excluding the icon)
+            const correctOptionElement = document.querySelector(`.quiz-option[data-option="${data.correct_answer}"]`);
+            const correctText = correctOptionElement.querySelector('span.flex-1').textContent;
             
             // Highlight correct answer
-            document.querySelector(`.quiz-option[data-option="${data.correct_answer}"]`).classList.add('border-green-500', 'bg-green-50');
+            correctOptionElement.classList.add('border-green-500', 'bg-green-50');
             document.querySelector(`.quiz-option[data-option="${answer}"]`).classList.add('border-red-500', 'bg-red-50');
 
             feedback.innerHTML = `
@@ -419,82 +444,6 @@ function submitQuizAnswer(answer) {
 </script>
 @endif
 
-<!-- Video Play Tracking -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const videoPlayer = document.getElementById('video-player');
-    if (!videoPlayer) return;
-
-    let playTracked = false;
-
-    function markVideoPlayed() {
-        if (playTracked) return;
-        playTracked = true;
-
-        fetch('{{ $activeLesson ? route("student.courses.lesson.play", [$course->id, $activeLesson->id]) : "#" }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Dynamically reveal the quiz section
-                const quizPrompt = document.getElementById('quiz-prompt');
-                const quizContent = document.getElementById('quiz-content');
-                if (quizPrompt && quizContent) {
-                    quizPrompt.classList.add('hidden');
-                    quizContent.classList.remove('hidden');
-                }
-            }
-        })
-        .catch(() => {});
-    }
-
-    // For YouTube iframe, we use the YouTube IFrame API
-    if (videoPlayer.src && videoPlayer.src.includes('youtube.com/embed')) {
-        // YouTube API ready - listen for state changes
-        let player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('video-player', {
-                events: {
-                    'onStateChange': function(event) {
-                        if (event.data === YT.PlayerState.PLAYING) {
-                            markVideoPlayed();
-                        }
-                    }
-                }
-            });
-        }
-        // Load YouTube API if not already loaded
-        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-            const tag = document.createElement('script');
-            tag.src = 'https://www.youtube.com/iframe_api';
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
-        } else {
-            onYouTubeIframeAPIReady();
-        }
-    }
-
-    // For Vimeo iframe
-    if (videoPlayer.src && videoPlayer.src.includes('vimeo.com')) {
-        // Listen for play events via postMessage
-        window.addEventListener('message', function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.event === 'play') {
-                    markVideoPlayed();
-                }
-            } catch (e) {}
-        });
-    }
-});
-</script>
 
 <!-- AI Chat Bot - Floating Button & Slide-Out Panel -->
 <div id="ai-chat" 
@@ -562,7 +511,31 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+<style>
+.btn-view-result:hover {
+    background-color: #15803d !important;
+}
+</style>
 <script>
+// Summary toggle function
+function toggleSummary() {
+    const summaryContent = document.getElementById('summary-content');
+    const summaryChevron = document.getElementById('summary-chevron');
+    const summaryBtn = document.querySelector('.summary-toggle-btn span');
+    
+    if (summaryContent) {
+        if (summaryContent.classList.contains('hidden')) {
+            summaryContent.classList.remove('hidden');
+            if (summaryChevron) summaryChevron.style.transform = 'rotate(180deg)';
+            if (summaryBtn) summaryBtn.textContent = 'Hide Summary';
+        } else {
+            summaryContent.classList.add('hidden');
+            if (summaryChevron) summaryChevron.style.transform = 'rotate(0deg)';
+            if (summaryBtn) summaryBtn.textContent = 'Show Summary';
+        }
+    }
+}
+
 let chatOpen = false;
 
 function toggleChat() {
@@ -707,5 +680,6 @@ function escapeHtml(text) {
         </div>
     </div>
 </div>
+
 
 @endsection

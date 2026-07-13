@@ -16,7 +16,7 @@ class IsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check() || !auth()->user()->isAdmin()) {
-            return redirect('/dashboard')->with('error', 'You do not have admin access.');
+            return redirect('/student/dashboard')->with('error', 'You do not have admin access.');
         }
 
         return $next($request);

@@ -50,10 +50,12 @@ class StudentCourseController extends Controller
 
         // 5. Check if the active lesson has a quiz and if the user has attempted it
         $quizAttempted = false;
+        $quizAttempt = null;
         if ($activeLesson && $activeLesson->quiz) {
-            $quizAttempted = QuizAttempt::where('quiz_id', $activeLesson->quiz->id)
+            $quizAttempt = QuizAttempt::where('quiz_id', $activeLesson->quiz->id)
                 ->where('user_id', $user->id)
-                ->exists();
+                ->first();
+            $quizAttempted = $quizAttempt !== null;
         }
 
         // 6. Check if the video has been played for the active lesson
@@ -65,7 +67,7 @@ class StudentCourseController extends Controller
                 ->exists();
         }
 
-        return view('student.courses.show', compact('course', 'lessons', 'activeLesson', 'unlockedLessonIds', 'quizAttempted', 'videoPlayed'));
+        return view('student.courses.show', compact('course', 'lessons', 'activeLesson', 'unlockedLessonIds', 'quizAttempted', 'quizAttempt', 'videoPlayed'));
     }
 
     private function getUnlockedLessonIds($lessons, $user)
