@@ -29,12 +29,11 @@ class StudentDashboardController extends Controller
             // Get completed lessons for this course (based on quiz completion)
             $courseCompletedLessons = $courseLessons->filter(function ($lesson) use ($user) {
                 // Lesson is complete if:
-                // 1. It has a quiz and user passed it (is_correct = true)
+                // 1. It has a quiz and user has attempted it (record exists)
                 // 2. OR it has no quiz (automatically complete)
                 if ($lesson->quiz) {
                     return \App\Models\QuizAttempt::where('quiz_id', $lesson->quiz->id)
                         ->where('user_id', $user->id)
-                        ->where('is_correct', true)
                         ->exists();
                 }
                 return true;

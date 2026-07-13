@@ -98,7 +98,12 @@
             <div class="flex items-start justify-between gap-4">
                 <div class="flex-1 min-w-0">
                     <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $activeLesson->title }}</h2>
-                    <p class="text-sm text-gray-600 leading-relaxed">{{ $activeLesson->description ?? 'No description provided for this lesson.' }}</p>
+                    <div class="relative">
+                        <p class="text-sm text-gray-600 leading-relaxed line-clamp-3" id="description-text">{{ $activeLesson->description ?? 'No description provided for this lesson.' }}</p>
+                        <button id="show-more-desc-btn" onclick="openDescriptionModal()" class="mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition inline-flex items-center gap-1">
+                            Show more <i class="fas fa-chevron-right text-[10px]" style="font-weight: 900;"></i>
+                        </button>
+                    </div>
                     
                     @if($activeLesson->summary)
                         <div class="mt-4 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
@@ -121,8 +126,11 @@
                     @endif
                 </div>
                 @if($activeLesson->duration)
+                    @php
+                        $durationFormatted = preg_match('/^[0-9]+$/', $activeLesson->duration) ? $activeLesson->duration . ' min' : (preg_match('/^[0-9]+:[0-9]+$/', $activeLesson->duration) ? $activeLesson->duration . ' min' : $activeLesson->duration);
+                    @endphp
                     <div class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">
-                        <i class="far fa-clock"></i> {{ $activeLesson->duration }}
+                        <i class="far fa-clock" style="font-family: 'Font Awesome 6 Free'; font-weight: 400;"></i> {{ $durationFormatted }}
                     </div>
                 @endif
             </div>
@@ -149,8 +157,8 @@
                                 </a>
                             @else
                                 <a href="{{ route('student.quizzes.play', [$course->id, $activeLesson->id]) }}" 
-                                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
-                                    <i class="fas fa-bolt"></i> Play Quick Quiz
+                                   class="take-quiz-btn inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
+                                    <i class="fas fa-play"></i> Play Quiz
                                 </a>
                             @endif
                         </div>
@@ -177,10 +185,9 @@
                     // Check if lesson is completed based on quiz status
                     $isCompleted = false;
                     if ($lesson->quiz) {
-                        // Has quiz - check if passed
+                        // Has quiz - check if attempted (regardless of correct/wrong)
                         $quizAttempt = \App\Models\QuizAttempt::where('quiz_id', $lesson->quiz->id)
                             ->where('user_id', auth()->id())
-                            ->where('is_correct', true)
                             ->exists();
                         $isCompleted = $quizAttempt;
                     } else {
@@ -217,9 +224,12 @@
                                         @if($lesson->youtube_url || $lesson->vimeo_url) Video @else Text @endif
                                     </span>
                                     @if($lesson->duration)
+                                        @php
+                                            $dur = preg_match('/^[0-9]+$/', $lesson->duration) ? $lesson->duration . ' min' : (preg_match('/^[0-9]+:[0-9]+$/', $lesson->duration) ? $lesson->duration . ' min' : $lesson->duration);
+                                        @endphp
                                         <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                         <span class="text-[11px] text-gray-500 flex items-center gap-1">
-                                            <i class="far fa-clock"></i> {{ $lesson->duration }}
+                                            <i class="far fa-clock" style="font-family: 'Font Awesome 6 Free'; font-weight: 400;"></i> {{ $dur }}
                                         </span>
                                     @endif
                                 </div>
@@ -253,9 +263,12 @@
                                         Locked
                                     </span>
                                     @if($lesson->duration)
+                                        @php
+                                            $dur = preg_match('/^[0-9]+$/', $lesson->duration) ? $lesson->duration . ' min' : (preg_match('/^[0-9]+:[0-9]+$/', $lesson->duration) ? $lesson->duration . ' min' : $lesson->duration);
+                                        @endphp
                                         <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                         <span class="text-[11px] text-gray-400 flex items-center gap-1">
-                                            <i class="far fa-clock"></i> {{ $lesson->duration }}
+                                            <i class="far fa-clock" style="font-family: 'Font Awesome 6 Free'; font-weight: 400;"></i> {{ $dur }}
                                         </span>
                                     @endif
                                 </div>
@@ -374,7 +387,7 @@
 
 <!-- Quiz Modal -->
 @if($activeLesson && $activeLesson->quiz)
-<div id="quiz-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+<div id="quiz-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4" onclick="if(event.target===this)closeQuizModal()">
     <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <!-- Modal Header -->
         <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 text-white shrink-0">
@@ -436,10 +449,10 @@
     </div>
 </div>
 
-<script>
-let quizSubmitting = false;
+        <script>
+        let quizSubmitting = false;
 
-function openQuizModal() {
+        function openQuizModal() {
     const modal = document.getElementById('quiz-modal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -529,10 +542,9 @@ function submitQuizAnswer(answer) {
             document.querySelector('.quiz-section-actions')?.innerHTML = `
                 <a href="{{ route('student.quizzes.result', [$course->id, $activeLesson->id, 'PLACEHOLDER']) }}" 
                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full sm:w-auto">
-                    <i class="fas fa-eye"></i> View Result
+                   <i class="fas fa-eye"></i> View Result
                 </a>
             `;
-            // Fix the placeholder ID in the URL after page reload
             // Reload page after a brief delay to refresh unlocked state
             setTimeout(() => { window.location.reload(); }, 2000);
         } else {
@@ -550,11 +562,11 @@ function submitQuizAnswer(answer) {
                     <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-times-circle text-2xl text-red-600"></i>
                     </div>
-                    <h4 class="text-lg font-bold text-red-800 mb-1">Incorrect</h4>
+                    <h4 class="text-lg font-bold text-red-800 mb-1">Better luck next time!</h4>
                     <p class="text-sm text-red-600 mb-2">The correct answer was: <strong>${correctLetter}. ${correctText}</strong></p>
-                    <p class="text-xs text-red-500 mb-4">Don't worry, you can try again!</p>
-                    <button onclick="openQuizModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
-                        <i class="fas fa-redo"></i> Try Again
+                    <p class="text-xs text-red-500 mb-4">You've unlocked the next lesson. Keep learning!</p>
+                    <button onclick="closeQuizModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-right"></i> Continue
                     </button>
                 </div>
             `;
@@ -575,8 +587,9 @@ function submitQuizAnswer(answer) {
         quizSubmitting = false;
     });
 }
-</script>
-@endif
+        </script>
+    @endif
+@endpush
 
 
 <!-- AI Chat Bot - Floating Button & Slide-Out Panel -->

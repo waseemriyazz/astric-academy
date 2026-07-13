@@ -34,7 +34,10 @@ class AdminLessonController extends Controller
             'quiz_correct_answer' => 'nullable|in:a,b,c,d',
         ]);
 
-        $validated['order'] = $validated['order'] ?? 0;
+        // Auto-assign next order if not provided or set to 0
+        if (empty($validated['order']) || (int) $validated['order'] === 0) {
+            $validated['order'] = ($course->lessons()->max('order') ?? 0) + 1;
+        }
         
         $lesson = $course->lessons()->create($validated);
 
@@ -76,7 +79,9 @@ class AdminLessonController extends Controller
             'quiz_correct_answer' => 'nullable|in:a,b,c,d',
         ]);
 
-        $validated['order'] = $validated['order'] ?? 0;
+        if (empty($validated['order']) || (int) $validated['order'] === 0) {
+            $validated['order'] = $lesson->order;
+        }
 
         $lesson->update($validated);
 
