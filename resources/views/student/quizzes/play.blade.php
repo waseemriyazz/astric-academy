@@ -35,7 +35,6 @@
                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 text-purple-600 text-xs font-semibold border border-purple-200">
                         <i class="fas fa-bolt"></i> Quick Play
                     </span>
-                    <span class="text-xs text-gray-500">No video required</span>
                 </div>
                 
                 <p class="text-lg font-semibold text-gray-900 mb-2">Question</p>
