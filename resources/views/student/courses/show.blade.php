@@ -471,7 +471,7 @@ function submitQuizAnswer(answer) {
                     </div>
                     <div>
                         <h3 class="font-bold text-sm">AI Tutor</h3>
-                        <p class="text-xs text-indigo-200">Ask anything about this lesson</p>
+                        <p class="text-sm font-medium text-white/90">Ask anything about this video</p>
                     </div>
                 </div>
                 <button onclick="toggleChat()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
