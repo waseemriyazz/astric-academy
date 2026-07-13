@@ -138,7 +138,7 @@
                 </button>
 
                 <!-- Profile -->
-                <div class="flex items-center gap-3 cursor-pointer pl-2 sm:pl-4 border-l border-gray-200">
+                <div class="flex items-center gap-3 pl-2 sm:pl-4 border-l border-gray-200">
                     <div class="hidden sm:block text-right">
                         <p class="text-sm font-semibold text-gray-800 leading-none mb-1">{{ Auth::user()->name }}</p>
                         <p class="text-xs text-gray-500 leading-none">Administrator</p>
@@ -146,7 +146,6 @@
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold shadow-sm border border-blue-200">
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
-                    <i class="fas fa-chevron-down text-gray-400 text-xs ml-1 hidden sm:block"></i>
                 </div>
             </div>
         </header>
