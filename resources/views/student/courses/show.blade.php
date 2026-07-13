@@ -106,10 +106,22 @@
                     </div>
                     
                     @if($activeLesson->summary)
-                        <div class="mt-4">
-                            <button onclick="openSummaryModal()" class="mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition inline-flex items-center gap-1">
-                                <i class="fas fa-list-check" style="font-weight: 900;"></i> Show Summary
-                            </button>
+                        <div class="mt-4 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0 mt-0.5">
+                                    <i class="fas fa-list-check text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-1">Key Takeaways</h4>
+                                    <div class="text-sm text-gray-600 leading-relaxed">
+                                        {!! \Illuminate\Support\Str::markdown(\Illuminate\Support\Str::limit($activeLesson->summary, 180)) !!}
+                                    </div>
+                                    <button onclick="openSummaryModal()" class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                                        Read Full Summary
+                                        <i class="fas fa-arrow-right text-[10px]"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -225,7 +237,19 @@
                         </div>
                     </a>
                 @else
-                    <div class="block p-3 rounded-xl border border-gray-100 bg-gray-50/50 cursor-not-allowed opacity-70" title="Complete the previous lesson's quiz to unlock this lesson">
+                    @php
+                        $lastUnlockedIndex = count($unlockedLessonIds) - 1;
+                        $targetLessonId = $unlockedLessonIds[$lastUnlockedIndex] ?? 0;
+                        $targetLesson = $lessons->firstWhere('id', $targetLessonId);
+                    @endphp
+                    <button type="button"
+                        onclick="openLockedModal(
+                            '{{ addslashes($targetLesson->title ?? 'N/A') }}',
+                            '{{ $targetLesson ? route('student.courses.show', [$course->id, $targetLesson->id]) : '#' }}',
+                            '{{ addslashes($lesson->title) }}'
+                        )"
+                        class="block w-full text-left p-3 rounded-xl border border-gray-100 bg-gray-50/50 cursor-pointer opacity-70 hover:opacity-100 hover:bg-gray-100 transition-all duration-200 group"
+                        title="Complete the current lesson to unlock this one">
                         <div class="flex items-start gap-3 pl-1">
                             <div class="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
                                 <i class="fas fa-lock text-xs"></i>
@@ -250,7 +274,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </button>
                 @endif
             @empty
                 <div class="p-6 text-center text-gray-500">
@@ -262,50 +286,20 @@
     </div>
 </div>
 
-@push('modals')
-<!-- Description Modal -->
-<div id="description-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4" onclick="if(event.target===this)closeDescriptionModal()">
-    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-        <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-5 text-white shrink-0">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <i class="fas fa-align-left"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-lg">{{ $activeLesson->title ?? 'Lesson' }}</h3>
-                        <p class="text-sm text-indigo-200">Full Description</p>
-                    </div>
-                </div>
-                <button onclick="closeDescriptionModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-        <!-- Modal Body -->
-        <div class="p-6 overflow-y-auto flex-1">
-            <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
-                {{ $activeLesson->description ?? 'No description provided for this lesson.' }}
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Summary Modal -->
 @if($activeLesson && $activeLesson->summary)
-<div id="summary-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4" onclick="if(event.target===this)closeSummaryModal()">
-    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+<div id="summary-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-5 text-white shrink-0">
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                         <i class="fas fa-list-check"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg">Lesson Summary</h3>
-                        <p class="text-sm text-indigo-200">Key points & recap</p>
+                        <h3 class="font-bold text-lg">Key Takeaways</h3>
+                        <p class="text-sm text-indigo-200">Full lesson summary</p>
                     </div>
                 </div>
                 <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
@@ -313,23 +307,83 @@
                 </button>
             </div>
         </div>
-        <!-- Modal Body -->
+
+        <!-- Modal Body - Scrollable -->
         <div class="p-6 overflow-y-auto flex-1">
-            <div class="bg-amber-50 border border-amber-100 rounded-xl p-5">
-                <div class="flex items-start gap-3 mb-3">
-                    <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shrink-0 mt-0.5">
-                        <i class="fas fa-lightbulb text-sm"></i>
-                    </span>
-                    <p class="text-sm text-amber-900 font-medium">Summary</p>
-                </div>
-                <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-line pl-11">
-                    {{ $activeLesson->summary }}
-                </div>
+            <div class="summary-markdown prose prose-sm max-w-none">
+                {!! \Illuminate\Support\Str::markdown($activeLesson->summary) !!}
             </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-end">
+            <button onclick="closeSummaryModal()" 
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                <i class="fas fa-check"></i> Got it
+            </button>
         </div>
     </div>
 </div>
 @endif
+
+<!-- Locked Lesson Modal -->
+<div id="locked-lesson-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-amber-500 to-orange-600 p-5 text-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-lg">Lesson Locked</h3>
+                    <p class="text-sm text-amber-200">Complete the prerequisites first</p>
+                </div>
+                <button onclick="closeLockedModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition shrink-0">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lock text-2xl text-amber-500"></i>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2" id="locked-modal-title">Lesson is Locked</h4>
+                <p class="text-sm text-gray-600 leading-relaxed" id="locked-modal-description">
+                    You need to complete the current lesson before you can access this one.
+                </p>
+            </div>
+
+            <!-- Prerequisite info box -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                        <i class="fas fa-play text-xs text-gray-500"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wider mb-0.5">Prerequisite Lesson</p>
+                        <p class="text-sm font-semibold text-gray-900 truncate" id="locked-modal-prev-lesson">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-2">
+                <a id="locked-modal-go-btn" href="#" 
+                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    <i class="fas fa-arrow-right"></i> Go to Current Lesson
+                </a>
+                <button onclick="closeLockedModal()" 
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Quiz Modal -->
 @if($activeLesson && $activeLesson->quiz)
@@ -451,14 +505,34 @@ function submitQuizAnswer(answer) {
         feedback.classList.remove('hidden');
 
         if (data.is_correct) {
+            let certificateHtml = '';
+            if (data.certificate_generated) {
+                certificateHtml = `
+                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                                <i class="fas fa-award text-yellow-600"></i>
+                            </div>
+                            <div class="text-left">
+                                <h5 class="text-sm font-bold text-yellow-800">Congratulations!</h5>
+                                <p class="text-xs text-yellow-600">You've completed all lessons! Your certificate is ready.</p>
+                            </div>
+                        </div>
+                        <a href="${data.certificate_url}" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition">
+                            <i class="fas fa-download"></i> Download Certificate
+                        </a>
+                    </div>
+                `;
+            }
             feedback.innerHTML = `
                 <div class="p-4 bg-green-50 border border-green-200 rounded-xl text-center">
                     <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-check-circle text-2xl text-green-600"></i>
                     </div>
-                    <h4 class="text-lg font-bold text-green-800 mb-1">Great job!</h4>
-                    <p class="text-sm text-green-600 mb-4">You've unlocked the next lesson.</p>
-                    <button onclick="closeQuizModal()" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-sm">
+                    <h4 class="text-lg font-bold text-green-800 mb-1">Correct!</h4>
+                    <p class="text-sm text-green-600 mb-4">Great job! You've unlocked the next lesson.</p>
+                    ${certificateHtml}
+                    <button onclick="closeQuizModal()" class="mt-3 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-sm">
                         <i class="fas fa-arrow-right"></i> Continue
                     </button>
                 </div>
@@ -588,50 +662,99 @@ function submitQuizAnswer(answer) {
 .btn-view-result:hover {
     background-color: #15803d !important;
 }
+
+/* Markdown rendered content styles */
+.summary-markdown h1,
+.summary-markdown h2,
+.summary-markdown h3,
+.summary-markdown h4 {
+    @apply font-bold text-gray-900 mt-5 mb-2;
+}
+.summary-markdown h1 { @apply text-xl; }
+.summary-markdown h2 { @apply text-lg; }
+.summary-markdown h3 { @apply text-base; }
+.summary-markdown h4 { @apply text-sm; }
+.summary-markdown p {
+    @apply text-gray-700 leading-relaxed mb-3;
+}
+.summary-markdown ul,
+.summary-markdown ol {
+    @apply pl-5 mb-3 text-gray-700;
+}
+.summary-markdown ul { @apply list-disc; }
+.summary-markdown ol { @apply list-decimal; }
+.summary-markdown li {
+    @apply mb-1 leading-relaxed;
+}
+.summary-markdown strong {
+    @apply font-bold text-gray-900;
+}
+.summary-markdown em {
+    @apply italic;
+}
+.summary-markdown code {
+    @apply bg-gray-100 text-sm px-1.5 py-0.5 rounded text-indigo-600 font-mono;
+}
+.summary-markdown pre {
+    @apply bg-gray-900 text-gray-100 rounded-xl p-4 mb-4 overflow-x-auto text-sm font-mono leading-relaxed;
+}
+.summary-markdown pre code {
+    @apply bg-transparent p-0 text-gray-100;
+}
+.summary-markdown blockquote {
+    @apply border-l-4 border-indigo-300 pl-4 py-1 mb-3 text-gray-600 italic bg-indigo-50/50 rounded-r-lg;
+}
+.summary-markdown hr {
+    @apply border-gray-200 my-4;
+}
+.summary-markdown a {
+    @apply text-indigo-600 hover:text-indigo-700 underline;
+}
 </style>
 <script>
-// Description & Summary Modal Functions
-function openDescriptionModal() {
-    const modal = document.getElementById('description-modal');
+// Locked lesson modal functions
+function openLockedModal(prevLessonTitle, prevLessonUrl, lessonTitle) {
+    document.getElementById('locked-modal-title').textContent = '"' + lessonTitle + '" is Locked';
+    document.getElementById('locked-modal-prev-lesson').textContent = prevLessonTitle;
+    document.getElementById('locked-modal-go-btn').href = prevLessonUrl;
+    
+    const modal = document.getElementById('locked-lesson-modal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    document.body.style.overflow = 'hidden';
 }
 
-function closeDescriptionModal() {
-    const modal = document.getElementById('description-modal');
+function closeLockedModal() {
+    const modal = document.getElementById('locked-lesson-modal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-    document.body.style.overflow = '';
 }
 
+// Close locked modal on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('locked-lesson-modal');
+    if (modal && e.target === modal) {
+        closeLockedModal();
+    }
+});
+
+// Summary modal functions
 function openSummaryModal() {
     const modal = document.getElementById('summary-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeSummaryModal() {
     const modal = document.getElementById('summary-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = '';
-    }
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
-// Hide "Show more" button if description is short (fits within 3 lines)
-document.addEventListener('DOMContentLoaded', function() {
-    const descText = document.getElementById('description-text');
-    const showMoreBtn = document.getElementById('show-more-desc-btn');
-    if (descText && showMoreBtn) {
-        // Check if content overflows the 3-line clamp
-        if (descText.scrollHeight <= descText.clientHeight) {
-            showMoreBtn.classList.add('hidden');
-        }
+// Close summary modal on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('summary-modal');
+    if (modal && e.target === modal) {
+        closeSummaryModal();
     }
 });
 

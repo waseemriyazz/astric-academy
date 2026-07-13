@@ -22,4 +22,9 @@ class Course extends Model
     {
         return $this->hasMany(Lesson::class)->orderBy('order');
     }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
 }

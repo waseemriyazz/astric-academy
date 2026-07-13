@@ -58,12 +58,38 @@ class StudentQuizController extends Controller
             'is_correct' => $isCorrect,
         ]);
 
+        // Auto-generate certificate if student just completed all lessons
+        $certificateGenerated = false;
+        $certificateUrl = null;
+        if ($isCorrect) {
+            $allComplete = StudentCertificateController::isCourseComplete($course, $user);
+            if ($allComplete) {
+                $existingCert = \App\Models\Certificate::where('user_id', $user->id)
+                    ->where('course_id', $course->id)
+                    ->first();
+
+                if (!$existingCert || $existingCert->is_revoked) {
+                    $cert = \App\Models\Certificate::create([
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                        'serial_number' => \App\Models\Certificate::generateSerialNumber(),
+                        'completed_at' => now(),
+                        'issued_at' => now(),
+                    ]);
+                    $certificateGenerated = true;
+                    $certificateUrl = route('student.certificates.download', $course->id);
+                }
+            }
+        }
+
         return response()->json([
             'success' => true,
             'is_correct' => $isCorrect,
             'correct_answer' => $quiz->correct_answer,
             'message' => $isCorrect ? 'Correct answer!' : 'Incorrect answer. Try again!',
             'attempt_id' => $attempt->id,
+            'certificate_generated' => $certificateGenerated,
+            'certificate_url' => $certificateUrl,
         ]);
     }
 
