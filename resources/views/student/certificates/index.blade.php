@@ -60,9 +60,9 @@
                                 <div class="absolute inset-0 flex items-center justify-center z-10">
                                     <div class="text-center">
                                         <div class="w-14 h-14 rounded-full bg-white/80 border border-gray-200 shadow-sm flex items-center justify-center mx-auto mb-3">
-                                            <i class="fas fa-lock text-xl text-gray-400"></i>
+                                            <i class="fas fa-lock text-xl text-gray-400 font-bold"></i>
                                         </div>
-                                        <p class="text-sm font-semibold text-gray-500 bg-white/80 px-4 py-1.5 rounded-lg shadow-sm inline-block">Complete all lessons to unlock</p>
+                                        <p class="text-sm font-bold text-gray-500 bg-white/80 px-4 py-1.5 rounded-lg shadow-sm inline-block">Complete all lessons to unlock</p>
                                     </div>
                                 </div>
                             @endif
