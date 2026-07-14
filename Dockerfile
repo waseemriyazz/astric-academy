@@ -1,7 +1,9 @@
 # ============================================================
-# Stage 1: Build
+# Stage 1 - Build
 # ============================================================
-FROM php:8.4-cli AS build
+FROM php:8.4-fpm AS build
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system packages
 RUN apt-get update && apt-get install -y \
@@ -17,10 +19,12 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libxml2-dev \
     libonig-dev \
-    zip \
+    nginx \
+    supervisor \
+    nodejs \
     npm \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install \
         pdo \
         pdo_sqlite \
         mbstring \
@@ -28,48 +32,57 @@ RUN apt-get update && apt-get install -y \
         gd \
         xml \
         zip \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy dependency manifests
+# ------------------------------------------------------------
+# Install Composer dependencies first (cache layer)
+# ------------------------------------------------------------
 COPY composer.json composer.lock ./
-COPY package.json package-lock.json* ./
 
-# Install dependencies
 RUN composer install \
     --no-dev \
-    --optimize-autoloader \
+    --prefer-dist \
     --no-interaction \
-    --prefer-dist
+    --no-scripts
+
+# ------------------------------------------------------------
+# Install Node dependencies
+# ------------------------------------------------------------
+COPY package*.json ./
 
 RUN npm install
 
+# ------------------------------------------------------------
 # Copy application
+# ------------------------------------------------------------
 COPY . .
 
-# ---------- DEBUG ----------
-RUN pwd
-RUN ls -la
-RUN ls -la resources || true
-RUN ls -la resources/js || true
-RUN ls -la resources/css || true
-RUN ls -la public || true
-RUN cat package.json
-RUN cat vite.config.js
-# ---------------------------
+# ------------------------------------------------------------
+# Generate optimized autoloader
+# ------------------------------------------------------------
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --optimize-autoloader
 
+# ------------------------------------------------------------
 # Build frontend
+# ------------------------------------------------------------
 RUN npm run build
 
 # ============================================================
-# Stage 2: Runtime
+# Runtime
 # ============================================================
 FROM php:8.4-fpm
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     nginx \
@@ -82,8 +95,8 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libxml2-dev \
     libonig-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install \
         pdo \
         pdo_sqlite \
         mbstring \
@@ -91,8 +104,8 @@ RUN apt-get update && apt-get install -y \
         gd \
         xml \
         zip \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
@@ -110,8 +123,8 @@ RUN mkdir -p \
     /data
 
 RUN chown -R www-data:www-data \
-    /var/www/html/storage \
-    /var/www/html/bootstrap/cache \
+    storage \
+    bootstrap/cache \
     /data
 
 EXPOSE 10000
