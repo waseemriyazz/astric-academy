@@ -73,8 +73,8 @@ PROMPT;
         }
 
         try {
-            // Use gemini-1.5-flash as the model (stable and widely available)
-         $modelName = 'gemini-2.5-flash';
+            // Use gemini-3.5-flash (latest stable flash model - confirmed responding)
+         $modelName = 'gemini-3.5-flash';
 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelName}:generateContent?key={$apiKey}";
 
 Log::info('Calling Gemini API', ['model' => $modelName, 'url' => $url]);
