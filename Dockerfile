@@ -1,11 +1,10 @@
 # ============================================================
-# Stage 1 - Build
+# Stage 1 - PHP Dependencies
 # ============================================================
-FROM php:8.4-fpm AS build
+FROM php:8.4-fpm AS php-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system packages
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -19,10 +18,6 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libxml2-dev \
     libonig-dev \
-    nginx \
-    supervisor \
-    nodejs \
-    npm \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install \
         pdo \
@@ -32,17 +27,12 @@ RUN apt-get update && apt-get install -y \
         gd \
         xml \
         zip \
- && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# ------------------------------------------------------------
-# Install Composer dependencies first (cache layer)
-# ------------------------------------------------------------
 COPY composer.json composer.lock ./
 
 RUN composer install \
@@ -51,34 +41,40 @@ RUN composer install \
     --no-interaction \
     --no-scripts
 
-# ------------------------------------------------------------
-# Install Node dependencies
-# ------------------------------------------------------------
-COPY package*.json ./
-
-RUN npm ci
-
-# ------------------------------------------------------------
-# Copy application
-# ------------------------------------------------------------
 COPY . .
 
-# ------------------------------------------------------------
-# Generate optimized autoloader
-# ------------------------------------------------------------
 RUN composer install \
     --no-dev \
     --prefer-dist \
     --no-interaction \
     --optimize-autoloader
 
-# ------------------------------------------------------------
-# Build frontend
-# ------------------------------------------------------------
+# ============================================================
+# Stage 2 - Frontend
+# ============================================================
+FROM node:22 AS frontend-builder
+
+WORKDIR /var/www/html
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+RUN node -v
+RUN npm -v
+
+RUN test -f vite.config.js
+RUN test -f package.json
+RUN test -d resources
+RUN test -d resources/js
+RUN test -d resources/css
+
 RUN npm run build
 
 # ============================================================
-# Runtime
+# Stage 3 - Runtime
 # ============================================================
 FROM php:8.4-fpm
 
@@ -104,12 +100,13 @@ RUN apt-get update && apt-get install -y \
         gd \
         xml \
         zip \
- && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
-COPY --from=build /var/www/html /var/www/html
+COPY --from=php-builder /var/www/html /var/www/html
+
+COPY --from=frontend-builder /var/www/html/public/build ./public/build
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/supervisord.conf
