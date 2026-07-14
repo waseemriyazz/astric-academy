@@ -7,6 +7,7 @@ FROM php:8.3-cli AS build
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    libsqlite3-dev \
     libzip-dev \
     libpng-dev \
     libjpeg-dev \
@@ -75,6 +76,7 @@ FROM php:8.3-fpm AS runtime
 RUN apt-get update && apt-get install -y \
     nginx \
     supervisor \
+    libsqlite3-dev \
     libzip-dev \
     libpng-dev \
     libjpeg-dev \
