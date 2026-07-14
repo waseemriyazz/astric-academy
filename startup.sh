@@ -47,6 +47,11 @@ php artisan optimize:clear || true
 php artisan migrate --force || true
 
 # ------------------------------------------------------------
+# Run seeders (idempotent - uses firstOrCreate)
+# ------------------------------------------------------------
+php artisan db:seed --force || true
+
+# ------------------------------------------------------------
 # Rebuild caches
 # ------------------------------------------------------------
 php artisan config:cache || true

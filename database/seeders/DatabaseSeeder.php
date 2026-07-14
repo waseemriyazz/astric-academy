@@ -14,16 +14,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@astryxacademy.com',
-            'role' => 'admin',
-        ]);
-
-        // Call SuperUserSeeder to create the super admin user
-        $this->call(SuperUserSeeder::class);
+        // Create admin user from environment variables
+        $this->call(AdminUserSeeder::class);
 
         Course::create([
             'title' => 'Web Development Bootcamp',
