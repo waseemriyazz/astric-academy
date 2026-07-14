@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1: Build — Install PHP deps & compile frontend assets
 # ============================================================
-FROM php:8.3-cli AS build
+FROM php:8.4-cli AS build
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -67,7 +67,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # ============================================================
 # Stage 2: Runtime — PHP-FPM + Nginx
 # ============================================================
-FROM php:8.3-fpm AS runtime
+FROM php:8.4-fpm AS runtime
 
 # Install Nginx and required PHP extensions
 RUN apt-get update && apt-get install -y \
