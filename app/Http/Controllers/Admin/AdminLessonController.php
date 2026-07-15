@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\Course;
 use App\Models\Lesson;
@@ -40,6 +41,13 @@ class AdminLessonController extends Controller
         }
         
         $lesson = $course->lessons()->create($validated);
+
+        Log::info('Admin created lesson', [
+            'admin_id' => auth()->id(),
+            'course_id' => $course->id,
+            'lesson_id' => $lesson->id,
+            'title' => $lesson->title,
+        ]);
 
         // Create quiz if quiz data is provided
         if (!empty($validated['quiz_question'])) {
@@ -85,6 +93,13 @@ class AdminLessonController extends Controller
 
         $lesson->update($validated);
 
+        Log::info('Admin updated lesson', [
+            'admin_id' => auth()->id(),
+            'course_id' => $course->id,
+            'lesson_id' => $lesson->id,
+            'title' => $lesson->title,
+        ]);
+
         // Update or create quiz
         if (!empty($validated['quiz_question'])) {
             $lesson->quiz()->updateOrCreate(
@@ -108,7 +123,16 @@ class AdminLessonController extends Controller
 
     public function destroy(Course $course, Lesson $lesson)
     {
+        $lessonId = $lesson->id;
+        $lessonTitle = $lesson->title;
         $lesson->delete();
+
+        Log::info('Admin deleted lesson', [
+            'admin_id' => auth()->id(),
+            'course_id' => $course->id,
+            'lesson_id' => $lessonId,
+            'title' => $lessonTitle,
+        ]);
 
         return redirect()->route('admin.courses.lessons.index', $course)->with('success', 'Lesson deleted successfully!');
     }

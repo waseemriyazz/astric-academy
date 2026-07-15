@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 
 class AdminUserController extends Controller
@@ -38,6 +39,13 @@ class AdminUserController extends Controller
         if ($request->has('courses')) {
             $user->courses()->attach($request->courses);
         }
+
+        Log::info('Admin registered student', [
+            'admin_id' => auth()->id(),
+            'student_id' => $user->id,
+            'student_email' => $user->email,
+            'assigned_courses' => $request->courses ?? [],
+        ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Student registered and courses assigned successfully.');
     }
@@ -71,12 +79,28 @@ class AdminUserController extends Controller
             $user->courses()->detach();
         }
 
+        Log::info('Admin updated student', [
+            'admin_id' => auth()->id(),
+            'student_id' => $user->id,
+            'student_email' => $user->email,
+            'assigned_courses' => $request->courses ?? [],
+        ]);
+
         return redirect()->route('admin.users.index')->with('success', 'Student updated successfully.');
     }
 
     public function destroy(User $user)
     {
+        $userId = $user->id;
+        $userEmail = $user->email;
         $user->delete();
+
+        Log::info('Admin deleted student', [
+            'admin_id' => auth()->id(),
+            'student_id' => $userId,
+            'student_email' => $userEmail,
+        ]);
+
         return redirect()->route('admin.users.index')->with('success', 'Student deleted successfully.');
     }
 }

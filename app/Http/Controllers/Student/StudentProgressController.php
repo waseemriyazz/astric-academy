@@ -8,6 +8,7 @@ use App\Models\Lesson;
 use App\Models\LessonProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StudentProgressController extends Controller
 {
@@ -35,6 +36,14 @@ class StudentProgressController extends Controller
                 'video_played' => true,
             ]
         );
+
+        Log::info('Student marked video as played', [
+            'student_id' => $user->id,
+            'student_email' => $user->email,
+            'course_id' => $course->id,
+            'lesson_id' => $lesson->id,
+            'lesson_title' => $lesson->title,
+        ]);
 
         return response()->json(['success' => true]);
     }

@@ -9,6 +9,7 @@ use App\Models\QuizAttempt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StudentCertificateController extends Controller
 {
@@ -139,6 +140,14 @@ class StudentCertificateController extends Controller
             'serial_number' => Certificate::generateSerialNumber(),
             'completed_at' => now(),
             'issued_at' => now(),
+        ]);
+
+        Log::info('Student generated certificate', [
+            'student_id' => $user->id,
+            'student_email' => $user->email,
+            'course_id' => $course->id,
+            'certificate_id' => $certificate->id,
+            'serial_number' => $certificate->serial_number,
         ]);
 
         return redirect()->route('student.certificates.show', $course->id)

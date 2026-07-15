@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StudentDashboardController extends Controller
 {
@@ -55,6 +56,15 @@ class StudentDashboardController extends Controller
         $overallProgress = $totalLessons > 0 
             ? round(($completedLessons / $totalLessons) * 100) 
             : 0;
+        
+        Log::info('Student viewed dashboard', [
+            'student_id' => $user->id,
+            'student_email' => $user->email,
+            'total_courses' => $totalCourses,
+            'total_lessons' => $totalLessons,
+            'completed_lessons' => $completedLessons,
+            'overall_progress' => $overallProgress,
+        ]);
         
         return view('student.dashboard', compact(
             'courses',

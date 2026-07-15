@@ -8,6 +8,7 @@ use App\Models\Lesson;
 use App\Models\QuizAttempt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StudentCourseController extends Controller
 {
@@ -17,6 +18,11 @@ class StudentCourseController extends Controller
         $user = Auth::user();
         
         if (!$user->courses()->where('courses.id', $course->id)->exists()) {
+            Log::warning('Student attempted to access unenrolled course', [
+                'student_id' => $user->id,
+                'student_email' => $user->email,
+                'course_id' => $course->id,
+            ]);
             abort(403, 'You are not enrolled in this course.');
         }
 

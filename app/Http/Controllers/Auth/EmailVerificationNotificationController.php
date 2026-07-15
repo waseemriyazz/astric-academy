@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class EmailVerificationNotificationController extends Controller
 {
@@ -18,6 +19,11 @@ class EmailVerificationNotificationController extends Controller
         }
 
         $request->user()->sendEmailVerificationNotification();
+
+        Log::info('Email verification link sent', [
+            'user_id' => $request->user()->id,
+            'user_email' => $request->user()->email,
+        ]);
 
         return back()->with('status', 'verification-link-sent');
     }

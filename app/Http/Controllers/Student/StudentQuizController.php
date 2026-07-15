@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Lesson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StudentQuizController extends Controller
 {
@@ -58,6 +59,16 @@ class StudentQuizController extends Controller
             'is_correct' => $isCorrect,
         ]);
 
+        Log::info('Student attempted quiz', [
+            'student_id' => $user->id,
+            'student_email' => $user->email,
+            'course_id' => $course->id,
+            'lesson_id' => $lesson->id,
+            'quiz_id' => $quiz->id,
+            'is_correct' => $isCorrect,
+            'selected_answer' => $validated['selected_answer'],
+        ]);
+
         // Auto-generate certificate if student just completed all lessons
         $certificateGenerated = false;
         $certificateUrl = null;
@@ -78,6 +89,14 @@ class StudentQuizController extends Controller
                     ]);
                     $certificateGenerated = true;
                     $certificateUrl = route('student.certificates.download', $course->id);
+
+                    Log::info('Certificate auto-generated for student', [
+                        'student_id' => $user->id,
+                        'student_email' => $user->email,
+                        'course_id' => $course->id,
+                        'certificate_id' => $cert->id,
+                        'serial_number' => $cert->serial_number,
+                    ]);
                 }
             }
         }

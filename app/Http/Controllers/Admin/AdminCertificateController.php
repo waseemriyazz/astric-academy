@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\QuizAttempt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AdminCertificateController extends Controller
 {
@@ -46,6 +47,15 @@ class AdminCertificateController extends Controller
                     'issued_at' => now(),
                     'serial_number' => Certificate::generateSerialNumber(),
                 ]);
+
+                Log::info('Admin re-issued certificate', [
+                    'admin_id' => auth()->id(),
+                    'certificate_id' => $existing->id,
+                    'serial_number' => $existing->serial_number,
+                    'student_id' => $user->id,
+                    'course_id' => $course->id,
+                ]);
+
                 return redirect()->route('admin.certificates.index')
                     ->with('success', "Certificate re-issued for {$user->name} - {$course->title}");
             }
@@ -60,6 +70,14 @@ class AdminCertificateController extends Controller
             'serial_number' => Certificate::generateSerialNumber(),
             'completed_at' => now(),
             'issued_at' => now(),
+        ]);
+
+        Log::info('Admin issued certificate', [
+            'admin_id' => auth()->id(),
+            'certificate_id' => $certificate->id,
+            'serial_number' => $certificate->serial_number,
+            'student_id' => $user->id,
+            'course_id' => $course->id,
         ]);
 
         return redirect()->route('admin.certificates.index')
@@ -108,6 +126,14 @@ class AdminCertificateController extends Controller
             'issued_at' => now(),
         ]);
 
+        Log::info('Admin auto-issued certificate', [
+            'admin_id' => auth()->id(),
+            'certificate_id' => $certificate->id,
+            'serial_number' => $certificate->serial_number,
+            'student_id' => $user->id,
+            'course_id' => $course->id,
+        ]);
+
         return redirect()->route('admin.certificates.index')
             ->with('success', "Certificate issued automatically! Serial: {$certificate->serial_number}");
     }
@@ -115,6 +141,14 @@ class AdminCertificateController extends Controller
     public function revoke(Certificate $certificate)
     {
         $certificate->update(['is_revoked' => true]);
+
+        Log::info('Admin revoked certificate', [
+            'admin_id' => auth()->id(),
+            'certificate_id' => $certificate->id,
+            'serial_number' => $certificate->serial_number,
+            'student_id' => $certificate->user_id,
+            'course_id' => $certificate->course_id,
+        ]);
 
         return redirect()->route('admin.certificates.index')
             ->with('success', "Certificate ({$certificate->serial_number}) has been revoked.");
@@ -154,6 +188,12 @@ class AdminCertificateController extends Controller
                 'signature_name' => $request->signature_name ?? 'Astryx Academy',
                 'signature_title' => $request->signature_title ?? 'Authorized Signature',
             ],
+        ]);
+
+        Log::info('Admin updated certificate config', [
+            'admin_id' => auth()->id(),
+            'course_id' => $course->id,
+            'signature_name' => $request->signature_name,
         ]);
 
         return redirect()->route('admin.courses.edit', $course->id)

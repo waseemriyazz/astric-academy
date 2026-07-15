@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -38,6 +39,11 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
+        Log::info('User updated profile', [
+            'user_id' => $request->user()->id,
+            'user_email' => $request->user()->email,
+        ]);
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -72,10 +78,17 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        $userId = $user->id;
+        $userEmail = $user->email;
         $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        Log::info('User deleted account', [
+            'user_id' => $userId,
+            'user_email' => $userEmail,
+        ]);
 
         return Redirect::to('/');
     }
