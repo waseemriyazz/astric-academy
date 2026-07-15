@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StoreCourseRequest;
+use App\Services\CourseService;
 
 class AdminCourseController extends Controller
 {
+    public function __construct(
+        protected CourseService $courseService,
+    ) {}
+
     public function index()
     {
-        $courses = Course::latest()->paginate(10);
+        $courses = $this->courseService->getAllPaginated();
         return view('admin.courses.index', compact('courses'));
     }
 
@@ -20,26 +24,12 @@ class AdminCourseController extends Controller
         return view('admin.courses.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCourseRequest $request)
     {
-        $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'tools_count' => ['required', 'integer', 'min:0'],
-        ]);
+        $course = $this->courseService->create($request->validated());
 
-        $course = Course::create($request->only('title', 'description', 'price', 'tools_count'));
-
-        Log::info('Admin created course', [
-            'admin_id' => auth()->id(),
-            'course_id' => $course->id,
-            'title' => $course->title,
-            'price' => $course->price,
-        ]);
-
-        // Redirect immediately to lessons page so they can add content
-        return redirect()->route('admin.courses.lessons.index', $course)->with('success', 'Course created! Now add your lessons.');
+        return redirect()->route('admin.courses.lessons.index', $course)
+            ->with('success', 'Course created! Now add your lessons.');
     }
 
     public function edit(Course $course)
@@ -47,37 +37,16 @@ class AdminCourseController extends Controller
         return view('admin.courses.edit', compact('course'));
     }
 
-    public function update(Request $request, Course $course)
+    public function update(StoreCourseRequest $request, Course $course)
     {
-        $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'tools_count' => ['required', 'integer', 'min:0'],
-        ]);
-
-        $course->update($request->only('title', 'description', 'price', 'tools_count'));
-
-        Log::info('Admin updated course', [
-            'admin_id' => auth()->id(),
-            'course_id' => $course->id,
-            'title' => $course->title,
-        ]);
+        $this->courseService->update($course, $request->validated());
 
         return redirect()->route('admin.courses.index')->with('success', 'Course updated successfully.');
     }
 
     public function destroy(Course $course)
     {
-        $courseId = $course->id;
-        $courseTitle = $course->title;
-        $course->delete();
-
-        Log::info('Admin deleted course', [
-            'admin_id' => auth()->id(),
-            'course_id' => $courseId,
-            'title' => $courseTitle,
-        ]);
+        $this->courseService->delete($course);
 
         return redirect()->route('admin.courses.index')->with('success', 'Course deleted successfully.');
     }

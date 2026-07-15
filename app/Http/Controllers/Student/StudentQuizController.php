@@ -3,36 +3,41 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\QuizAttempt;
+use App\Services\CertificateService;
+use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class StudentQuizController extends Controller
 {
+    public function __construct(
+        protected EnrollmentService $enrollmentService,
+        protected CertificateService $certificateService,
+    ) {}
+
     public function attempt(Request $request, Course $course, Lesson $lesson)
     {
         $user = Auth::user();
 
-        // Verify enrollment
-        if (!$user->courses()->where('courses.id', $course->id)->exists()) {
+        if (!$this->enrollmentService->isEnrolled($user, $course)) {
             return response()->json(['error' => 'Not enrolled in this course.'], 403);
         }
 
-        // Verify lesson belongs to course
-        if ($lesson->course_id !== $course->id) {
+        if (!$this->enrollmentService->verifyLessonBelongsToCourse($course, $lesson)) {
             return response()->json(['error' => 'Lesson not found in this course.'], 404);
         }
 
-        // Check if lesson has a quiz
         $quiz = $lesson->quiz;
         if (!$quiz) {
             return response()->json(['error' => 'No quiz for this lesson.'], 404);
         }
 
-        // Prevent re-attempting if already attempted
-        $existingAttempt = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+        $existingAttempt = QuizAttempt::where('quiz_id', $quiz->id)
             ->where('user_id', $user->id)
             ->first();
 
@@ -52,7 +57,6 @@ class StudentQuizController extends Controller
 
         $isCorrect = $validated['selected_answer'] === $quiz->correct_answer;
 
-        // Create attempt record
         $attempt = $quiz->attempts()->create([
             'user_id' => $user->id,
             'selected_answer' => $validated['selected_answer'],
@@ -73,20 +77,12 @@ class StudentQuizController extends Controller
         $certificateGenerated = false;
         $certificateUrl = null;
         if ($isCorrect) {
-            $allComplete = StudentCertificateController::isCourseComplete($course, $user);
+            $allComplete = $this->certificateService->isCourseComplete($course, $user);
             if ($allComplete) {
-                $existingCert = \App\Models\Certificate::where('user_id', $user->id)
-                    ->where('course_id', $course->id)
-                    ->first();
+                $existingCert = $this->certificateService->getExistingCertificate($user, $course);
 
                 if (!$existingCert || $existingCert->is_revoked) {
-                    $cert = \App\Models\Certificate::create([
-                        'user_id' => $user->id,
-                        'course_id' => $course->id,
-                        'serial_number' => \App\Models\Certificate::generateSerialNumber(),
-                        'completed_at' => now(),
-                        'issued_at' => now(),
-                    ]);
+                    $cert = $this->certificateService->generateCertificate($user, $course);
                     $certificateGenerated = true;
                     $certificateUrl = route('student.certificates.download', $course->id);
 
@@ -116,24 +112,20 @@ class StudentQuizController extends Controller
     {
         $user = Auth::user();
 
-        // Verify enrollment
-        if (!$user->courses()->where('courses.id', $course->id)->exists()) {
+        if (!$this->enrollmentService->isEnrolled($user, $course)) {
             abort(403, 'Not enrolled in this course.');
         }
 
-        // Verify lesson belongs to course
-        if ($lesson->course_id !== $course->id) {
+        if (!$this->enrollmentService->verifyLessonBelongsToCourse($course, $lesson)) {
             abort(404, 'Lesson not found in this course.');
         }
 
-        // Check if lesson has a quiz
         $quiz = $lesson->quiz;
         if (!$quiz) {
             abort(404, 'No quiz for this lesson.');
         }
 
-        // Redirect if already attempted
-        $alreadyAttempted = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+        $alreadyAttempted = QuizAttempt::where('quiz_id', $quiz->id)
             ->where('user_id', $user->id)
             ->exists();
 
@@ -149,25 +141,20 @@ class StudentQuizController extends Controller
     {
         $user = Auth::user();
 
-        // Verify enrollment
-        if (!$user->courses()->where('courses.id', $course->id)->exists()) {
+        if (!$this->enrollmentService->isEnrolled($user, $course)) {
             abort(403, 'Not enrolled in this course.');
         }
 
-        // Verify lesson belongs to course
-        if ($lesson->course_id !== $course->id) {
+        if (!$this->enrollmentService->verifyLessonBelongsToCourse($course, $lesson)) {
             abort(404, 'Lesson not found in this course.');
         }
 
-        // Get the attempt
-        $attempt = \App\Models\QuizAttempt::findOrFail($attempt);
-        
-        // Verify the attempt belongs to the current user
+        $attempt = QuizAttempt::findOrFail($attempt);
+
         if ($attempt->user_id !== $user->id) {
             abort(403, 'Unauthorized access.');
         }
 
-        // Verify the attempt is for this quiz
         $quiz = $lesson->quiz;
         if (!$quiz || $attempt->quiz_id !== $quiz->id) {
             abort(404, 'Quiz not found.');

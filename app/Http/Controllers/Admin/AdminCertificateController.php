@@ -6,13 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\User;
-use App\Models\QuizAttempt;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\CertificateService;
+use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AdminCertificateController extends Controller
 {
+    public function __construct(
+        protected CertificateService $certificateService,
+        protected EnrollmentService $enrollmentService,
+    ) {}
+
     public function index()
     {
         $certificates = Certificate::with(['user', 'course'])
@@ -35,10 +40,7 @@ class AdminCertificateController extends Controller
         $user = User::findOrFail($request->user_id);
         $course = Course::findOrFail($request->course_id);
 
-        // Check if already exists
-        $existing = Certificate::where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->first();
+        $existing = $this->certificateService->getExistingCertificate($user, $course);
 
         if ($existing) {
             if ($existing->is_revoked) {
@@ -64,13 +66,7 @@ class AdminCertificateController extends Controller
                 ->with('error', 'Certificate already exists for this student and course.');
         }
 
-        $certificate = Certificate::create([
-            'user_id' => $user->id,
-            'course_id' => $course->id,
-            'serial_number' => Certificate::generateSerialNumber(),
-            'completed_at' => now(),
-            'issued_at' => now(),
-        ]);
+        $certificate = $this->certificateService->generateCertificate($user, $course);
 
         Log::info('Admin issued certificate', [
             'admin_id' => auth()->id(),
@@ -86,45 +82,19 @@ class AdminCertificateController extends Controller
 
     public function issueAuto(Course $course, User $user)
     {
-        // Check if all lessons are complete (all quizzes passed)
-        $lessons = $course->lessons;
-        $allComplete = true;
-
-        foreach ($lessons as $lesson) {
-            if ($lesson->quiz) {
-                $hasPassed = QuizAttempt::where('quiz_id', $lesson->quiz->id)
-                    ->where('user_id', $user->id)
-                    ->where('is_correct', true)
-                    ->exists();
-
-                if (!$hasPassed) {
-                    $allComplete = false;
-                    break;
-                }
-            }
-        }
-
-        if (!$allComplete) {
+        if (!$this->certificateService->isCourseComplete($course, $user)) {
             return redirect()->route('admin.certificates.index')
                 ->with('error', 'Student has not completed all lessons in this course.');
         }
 
-        $existing = Certificate::where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->first();
+        $existing = $this->certificateService->getExistingCertificate($user, $course);
 
         if ($existing && !$existing->is_revoked) {
             return redirect()->route('admin.certificates.index')
                 ->with('error', 'Certificate already exists.');
         }
 
-        $certificate = Certificate::create([
-            'user_id' => $user->id,
-            'course_id' => $course->id,
-            'serial_number' => Certificate::generateSerialNumber(),
-            'completed_at' => now(),
-            'issued_at' => now(),
-        ]);
+        $certificate = $this->certificateService->generateCertificate($user, $course);
 
         Log::info('Admin auto-issued certificate', [
             'admin_id' => auth()->id(),
@@ -156,24 +126,7 @@ class AdminCertificateController extends Controller
 
     public function download(Certificate $certificate)
     {
-        $user = $certificate->user;
-        $course = $certificate->course;
-        $config = $course->certificate_config ?? [];
-        $logoPath = public_path('images/logo-1.jpeg');
-
-        $pdf = Pdf::loadView('pdf.certificate', [
-            'certificate' => $certificate,
-            'course' => $course,
-            'user' => $user,
-            'config' => $config,
-            'logoPath' => $logoPath,
-        ]);
-
-        $pdf->setPaper('a4', 'landscape');
-
-        $filename = 'certificate-' . str_replace(' ', '-', $course->title) . '-' . $certificate->serial_number . '.pdf';
-
-        return $pdf->download($filename);
+        return $this->certificateService->generatePdf($certificate);
     }
 
     public function updateConfig(Request $request, Course $course)

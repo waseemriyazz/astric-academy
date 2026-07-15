@@ -6,18 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\QuizAttempt;
-use Illuminate\Http\Request;
+use App\Models\LessonProgress;
+use App\Services\EnrollmentService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class StudentCourseController extends Controller
 {
+    public function __construct(
+        protected EnrollmentService $enrollmentService,
+    ) {}
+
     public function show(Course $course, Lesson $lesson = null)
     {
-        // 1. Verify the student is enrolled in this course
         $user = Auth::user();
-        
-        if (!$user->courses()->where('courses.id', $course->id)->exists()) {
+
+        // 1. Verify the student is enrolled in this course
+        if (!$this->enrollmentService->isEnrolled($user, $course)) {
             Log::warning('Student attempted to access unenrolled course', [
                 'student_id' => $user->id,
                 'student_email' => $user->email,
@@ -34,13 +39,10 @@ class StudentCourseController extends Controller
 
         // 4. Determine the active lesson
         if ($lesson) {
-            // Verify this lesson actually belongs to this course
-            if ($lesson->course_id !== $course->id) {
+            if (!$this->enrollmentService->verifyLessonBelongsToCourse($course, $lesson)) {
                 abort(404, 'Lesson not found in this course.');
             }
-            // Check if the lesson is unlocked
             if (!in_array($lesson->id, $unlockedLessonIds)) {
-                // Redirect to the first unlocked lesson
                 $firstUnlocked = $lessons->firstWhere('id', $unlockedLessonIds[0] ?? null);
                 if ($firstUnlocked) {
                     return redirect()->route('student.courses.show', [$course->id, $firstUnlocked->id])
@@ -50,7 +52,6 @@ class StudentCourseController extends Controller
             }
             $activeLesson = $lesson;
         } else {
-            // Default to the first lesson if none provided
             $activeLesson = $lessons->first();
         }
 
@@ -67,7 +68,7 @@ class StudentCourseController extends Controller
         // 6. Check if the video has been played for the active lesson
         $videoPlayed = false;
         if ($activeLesson) {
-            $videoPlayed = \App\Models\LessonProgress::where('lesson_id', $activeLesson->id)
+            $videoPlayed = LessonProgress::where('lesson_id', $activeLesson->id)
                 ->where('user_id', $user->id)
                 ->where('video_played', true)
                 ->exists();
@@ -79,31 +80,28 @@ class StudentCourseController extends Controller
     private function getUnlockedLessonIds($lessons, $user)
     {
         $unlockedIds = [];
-        
+
         foreach ($lessons as $index => $lesson) {
             if ($index === 0) {
-                // First lesson is always unlocked
                 $unlockedIds[] = $lesson->id;
             } else {
-                // Check if the previous lesson has a quiz that the user has attempted
                 $previousLesson = $lessons[$index - 1];
                 $previousQuiz = $previousLesson->quiz;
-                
+
                 if ($previousQuiz) {
                     $hasAttempted = QuizAttempt::where('quiz_id', $previousQuiz->id)
                         ->where('user_id', $user->id)
                         ->exists();
-                    
+
                     if ($hasAttempted) {
                         $unlockedIds[] = $lesson->id;
                     }
                 } else {
-                    // If previous lesson has no quiz, it's automatically unlocked
                     $unlockedIds[] = $lesson->id;
                 }
             }
         }
-        
+
         return $unlockedIds;
     }
 }
