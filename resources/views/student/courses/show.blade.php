@@ -722,7 +722,7 @@ function submitQuizAnswer(answer) {
                     <i class="fas fa-robot text-xs text-indigo-600"></i>
                 </div>
                 <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
-                    <p class="text-sm text-gray-700 leading-relaxed">Hi! I'm your AI tutor. Ask me anything about this lesson — I can help clarify concepts, answer questions, or provide additional explanations based on the course material.</p>
+                    <div class="text-sm text-gray-700 leading-relaxed chat-markdown">Hi! I'm your AI tutor. Ask me anything about this lesson — I can help clarify concepts, answer questions, or provide additional explanations based on the course material.</div>
                 </div>
             </div>
         </div>
@@ -757,6 +757,29 @@ function submitQuizAnswer(answer) {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Chat markdown styles */
+.chat-markdown ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+.chat-markdown li {
+    margin-bottom: 0.25rem;
+    line-height: 1.5;
+}
+.chat-markdown strong {
+    font-weight: 700;
+    color: #111827;
+}
+.chat-markdown em {
+    font-style: italic;
+}
+.chat-markdown br + br {
+    display: block;
+    content: "";
+    margin-top: 0.5rem;
 }
 
 /* Markdown rendered content styles */
@@ -969,7 +992,7 @@ async function sendMessage(event) {
                 <i class="fas fa-robot text-xs text-indigo-600"></i>
             </div>
             <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
-                <p class="text-sm text-gray-700 leading-relaxed">${escapeHtml(data.reply || 'Sorry, I could not generate a response.')}</p>
+                <div class="text-sm text-gray-700 leading-relaxed chat-markdown">${renderMarkdown(data.reply || 'Sorry, I could not generate a response.')}</div>
             </div>
         `;
         messages.appendChild(botDiv);
@@ -1001,6 +1024,28 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Simple markdown renderer for chat messages
+function renderMarkdown(text) {
+    // First escape HTML
+    text = escapeHtml(text);
+    // Bold: **text** or __text__
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_ (but not inside words)
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    text = text.replace(/_([^_]+)_/g, '<em>$1</em>');
+    // Bullet points: • or - or * at start of line
+    text = text.replace(/^[\s]*[•\-\*]\s+(.+)$/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>(\s|<br\s*\/?>)*)+/g, function(match) {
+        return '<ul>' + match.replace(/<br\s*\/?>/g, '') + '</ul>';
+    });
+    // Newlines to <br>
+    text = text.replace(/\n/g, '<br>');
+    // Clean up empty wraps
+    text = text.replace(/<ul>\s*<\/ul>/g, '');
+    return text;
 }
 
 // Auto-scroll playlist to show 3 lessons centered around the active one
