@@ -11,6 +11,7 @@ class Course extends Model
         'description',
         'price',
         'tools_count',
+        'certificate_config',
     ];
 
     public function users()

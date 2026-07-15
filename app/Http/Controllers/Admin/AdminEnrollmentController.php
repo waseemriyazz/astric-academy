@@ -46,14 +46,28 @@ class AdminEnrollmentController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
-        $user->courses()->syncWithoutDetaching([$request->course_id]);
 
-        Log::info('Admin enrolled student in course', [
-            'admin_id' => auth()->id(),
-            'student_id' => $user->id,
-            'student_email' => $user->email,
-            'course_id' => $request->course_id,
-        ]);
+        DB::beginTransaction();
+        try {
+            $user->courses()->syncWithoutDetaching([$request->course_id]);
+
+            Log::info('Admin enrolled student in course', [
+                'admin_id' => auth()->id(),
+                'student_id' => $user->id,
+                'student_email' => $user->email,
+                'course_id' => $request->course_id,
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Enrollment failed', [
+                'student_id' => $user->id,
+                'course_id' => $request->course_id,
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->back()->with('error', 'Enrollment failed. Please try again.');
+        }
 
         return redirect()->route('admin.enrollments.index')->with('success', 'Student enrolled successfully.');
     }

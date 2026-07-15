@@ -11,6 +11,7 @@ use App\Services\CertificateService;
 use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class StudentQuizController extends Controller
@@ -57,44 +58,58 @@ class StudentQuizController extends Controller
 
         $isCorrect = $validated['selected_answer'] === $quiz->correct_answer;
 
-        $attempt = $quiz->attempts()->create([
-            'user_id' => $user->id,
-            'selected_answer' => $validated['selected_answer'],
-            'is_correct' => $isCorrect,
-        ]);
+        DB::beginTransaction();
+        try {
+            $attempt = $quiz->attempts()->create([
+                'user_id' => $user->id,
+                'selected_answer' => $validated['selected_answer'],
+                'is_correct' => $isCorrect,
+            ]);
 
-        Log::info('Student attempted quiz', [
-            'student_id' => $user->id,
-            'student_email' => $user->email,
-            'course_id' => $course->id,
-            'lesson_id' => $lesson->id,
-            'quiz_id' => $quiz->id,
-            'is_correct' => $isCorrect,
-            'selected_answer' => $validated['selected_answer'],
-        ]);
+            Log::info('Student attempted quiz', [
+                'student_id' => $user->id,
+                'student_email' => $user->email,
+                'course_id' => $course->id,
+                'lesson_id' => $lesson->id,
+                'quiz_id' => $quiz->id,
+                'is_correct' => $isCorrect,
+                'selected_answer' => $validated['selected_answer'],
+            ]);
 
-        // Auto-generate certificate if student just completed all lessons
-        $certificateGenerated = false;
-        $certificateUrl = null;
-        if ($isCorrect) {
-            $allComplete = $this->certificateService->isCourseComplete($course, $user);
-            if ($allComplete) {
-                $existingCert = $this->certificateService->getExistingCertificate($user, $course);
+            // Auto-generate certificate if student just completed all lessons
+            $certificateGenerated = false;
+            $certificateUrl = null;
+            if ($isCorrect) {
+                $allComplete = $this->certificateService->isCourseComplete($course, $user);
+                if ($allComplete) {
+                    $existingCert = $this->certificateService->getExistingCertificate($user, $course);
 
-                if (!$existingCert || $existingCert->is_revoked) {
-                    $cert = $this->certificateService->generateCertificate($user, $course);
-                    $certificateGenerated = true;
-                    $certificateUrl = route('student.certificates.download', $course->id);
+                    if (!$existingCert || $existingCert->is_revoked) {
+                        $cert = $this->certificateService->generateCertificate($user, $course);
+                        $certificateGenerated = true;
+                        $certificateUrl = route('student.certificates.download', $course->id);
 
-                    Log::info('Certificate auto-generated for student', [
-                        'student_id' => $user->id,
-                        'student_email' => $user->email,
-                        'course_id' => $course->id,
-                        'certificate_id' => $cert->id,
-                        'serial_number' => $cert->serial_number,
-                    ]);
+                        Log::info('Certificate auto-generated for student', [
+                            'student_id' => $user->id,
+                            'student_email' => $user->email,
+                            'course_id' => $course->id,
+                            'certificate_id' => $cert->id,
+                            'serial_number' => $cert->serial_number,
+                        ]);
+                    }
                 }
             }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Quiz attempt failed', [
+                'student_id' => $user->id,
+                'course_id' => $course->id,
+                'lesson_id' => $lesson->id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'An error occurred processing your quiz attempt.'], 500);
         }
 
         return response()->json([

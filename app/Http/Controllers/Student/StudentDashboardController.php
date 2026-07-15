@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\QuizAttempt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,6 +19,11 @@ class StudentDashboardController extends Controller
             $query->orderBy('order');
         }])->get();
         
+        // Bulk load all attempted quiz IDs for this user in one query
+        $attemptedQuizIds = QuizAttempt::where('user_id', $user->id)
+            ->pluck('quiz_id')
+            ->toArray();
+        
         // Calculate overall statistics
         $totalCourses = $courses->count();
         $totalLessons = 0;
@@ -28,14 +34,12 @@ class StudentDashboardController extends Controller
             $totalLessons += $courseLessons->count();
             
             // Get completed lessons for this course (based on quiz completion)
-            $courseCompletedLessons = $courseLessons->filter(function ($lesson) use ($user) {
+            $courseCompletedLessons = $courseLessons->filter(function ($lesson) use ($attemptedQuizIds) {
                 // Lesson is complete if:
                 // 1. It has a quiz and user has attempted it (record exists)
                 // 2. OR it has no quiz (automatically complete)
                 if ($lesson->quiz) {
-                    return \App\Models\QuizAttempt::where('quiz_id', $lesson->quiz->id)
-                        ->where('user_id', $user->id)
-                        ->exists();
+                    return in_array($lesson->quiz->id, $attemptedQuizIds);
                 }
                 return true;
             });

@@ -18,14 +18,15 @@ class CertificateService
             return false;
         }
 
+        // Bulk load all passed quiz attempts for this user in one query
+        $passedQuizIds = QuizAttempt::where('user_id', $user->id)
+            ->where('is_correct', true)
+            ->pluck('quiz_id')
+            ->toArray();
+
         foreach ($lessons as $lesson) {
             if ($lesson->quiz) {
-                $hasPassed = QuizAttempt::where('quiz_id', $lesson->quiz->id)
-                    ->where('user_id', $user->id)
-                    ->where('is_correct', true)
-                    ->exists();
-
-                if (!$hasPassed) {
+                if (!in_array($lesson->quiz->id, $passedQuizIds)) {
                     return false;
                 }
             }
@@ -79,6 +80,12 @@ class CertificateService
         $courses = $user->courses()->with('lessons.quiz')->get();
         $certificates = [];
 
+        // Bulk load all passed quiz attempts for this user in one query
+        $passedQuizIds = QuizAttempt::where('user_id', $user->id)
+            ->where('is_correct', true)
+            ->pluck('quiz_id')
+            ->toArray();
+
         foreach ($courses as $course) {
             $certificate = $this->getExistingCertificate($user, $course);
 
@@ -87,11 +94,7 @@ class CertificateService
 
             foreach ($course->lessons as $lesson) {
                 if ($lesson->quiz) {
-                    $hasPassed = QuizAttempt::where('quiz_id', $lesson->quiz->id)
-                        ->where('user_id', $user->id)
-                        ->where('is_correct', true)
-                        ->exists();
-                    if ($hasPassed) {
+                    if (in_array($lesson->quiz->id, $passedQuizIds)) {
                         $completedLessons++;
                     }
                 } else {

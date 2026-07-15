@@ -81,6 +81,11 @@ class StudentCourseController extends Controller
     {
         $unlockedIds = [];
 
+        // Bulk load all attempted quiz IDs for this user in one query
+        $attemptedQuizIds = QuizAttempt::where('user_id', $user->id)
+            ->pluck('quiz_id')
+            ->toArray();
+
         foreach ($lessons as $index => $lesson) {
             if ($index === 0) {
                 $unlockedIds[] = $lesson->id;
@@ -89,11 +94,7 @@ class StudentCourseController extends Controller
                 $previousQuiz = $previousLesson->quiz;
 
                 if ($previousQuiz) {
-                    $hasAttempted = QuizAttempt::where('quiz_id', $previousQuiz->id)
-                        ->where('user_id', $user->id)
-                        ->exists();
-
-                    if ($hasAttempted) {
+                    if (in_array($previousQuiz->id, $attemptedQuizIds)) {
                         $unlockedIds[] = $lesson->id;
                     }
                 } else {
