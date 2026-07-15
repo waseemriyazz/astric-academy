@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+// disabled dark mode: use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -15,7 +16,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::patch('/theme', [ProfileController::class, 'updateTheme'])->name('theme.update');
+    // disabled dark mode
+    // Route::patch('/theme', [ProfileController::class, 'updateTheme'])->name('theme.update');
 });
 
 require __DIR__.'/auth.php';

@@ -42,21 +42,22 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /**
-     * Update the user's theme preference.
-     */
-    public function updateTheme(Request $request): JsonResponse
-    {
-        $request->validate([
-            'theme' => ['required', 'in:light,dark'],
-        ]);
+    // disabled dark mode
+    // /**
+    //  * Update the user's theme preference.
+    //  */
+    // public function updateTheme(Request $request): JsonResponse
+    // {
+    //     $request->validate([
+    //         'theme' => ['required', 'in:light,dark'],
+    //     ]);
 
-        $request->user()->update([
-            'theme' => $request->theme,
-        ]);
+    //     $request->user()->update([
+    //         'theme' => $request->theme,
+    //     ]);
 
-        return response()->json(['success' => true]);
-    }
+    //     return response()->json(['success' => true]);
+    // }
 
     /**
      * Delete the user's account.

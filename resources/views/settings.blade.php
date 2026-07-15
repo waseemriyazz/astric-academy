@@ -5,6 +5,7 @@
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6">
     
+    {{-- disabled dark mode
     <!-- Appearance Settings Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
@@ -34,6 +35,7 @@
             </div>
         </div>
     </div>
+    --}}
 
     <!-- Password Change Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -182,6 +184,7 @@
     </div>
 </div>
 
+{{-- disabled dark mode
 @push('scripts')
 <script>
     const themeToggle = document.getElementById('theme-toggle');
@@ -260,4 +263,5 @@
     });
 </script>
 @endpush
+--}}
 @endsection

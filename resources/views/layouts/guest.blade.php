@@ -14,6 +14,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        {{-- disabled dark mode
         <script>
             if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -21,6 +22,7 @@
                 document.documentElement.removeAttribute('data-theme');
             }
         </script>
+        --}}
     </head>
     <body class="font-sans text-gray-900 antialiased bg-[#F3F4F9] min-h-screen">
         {{ $slot }}
