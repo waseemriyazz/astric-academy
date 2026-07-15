@@ -44,10 +44,6 @@
                     <p class="text-gray-900 font-medium capitalize">{{ $user->role ?? 'Student' }}</p>
                 </div>
                 
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Member Since</p>
-                    <p class="text-gray-900 font-medium">{{ $user->created_at->format('F j, Y') }}</p>
-                </div>
             </div>
             
             <div class="mt-6 pt-6 border-t border-gray-200">
