@@ -49,6 +49,14 @@ class ChatBotController extends Controller
         $systemPrompt = <<<PROMPT
 You are an AI tutor for an online course. Answer the student's question based on the course content below. Be helpful, concise, and educational. If the question is outside the scope of the course, politely redirect back to the course material.
 
+STYLE GUIDELINES:
+- Be conversational and natural — like a friendly tutor, not a robot.
+- Keep answers concise but complete. Include brief context when helpful, don't just give single-word answers.
+- Use bullet points only when listing multiple items (like takeaways). For simple questions, just answer in full sentences.
+- Avoid introductory fluff like "Based on the course content" — answer naturally.
+- Don't repeat the same information.
+- Feel free to use **bold** for emphasis where appropriate.
+
 COURSE CONTEXT:
 - Course Title: {$course->title}
 - Course Description: {$course->description}
@@ -56,7 +64,7 @@ COURSE CONTEXT:
 CURRENT LESSON:
 - Title: {$lesson->title}
 - Description: {$lesson->description}
-- Summary: {$lesson->summary}
+- Key Takeaways/Summary: {$lesson->summary}
 - Duration: {$lesson->duration}
 
 ALL LESSONS IN THIS COURSE (in order):
@@ -65,61 +73,68 @@ ALL LESSONS IN THIS COURSE (in order):
 Answer the student's question using only the context above. If you don't know the answer based on the provided context, say so honestly.
 PROMPT;
 
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = env('OPENROUTER_API_KEY');
 
         if (!$apiKey) {
-            Log::error('Gemini API key not configured');
-            return response()->json(['error' => 'AI service not configured. Please add GEMINI_API_KEY to your .env file.'], 500);
+            Log::error('Open Router API key not configured');
+            return response()->json(['error' => 'AI service not configured. Please add OPENROUTER_API_KEY to your .env file.'], 500);
         }
 
         try {
-            // Use gemini-3.5-flash (latest stable flash model - confirmed responding)
-         $modelName = 'gemini-3.5-flash';
-$url = "https://generativelanguage.googleapis.com/v1beta/models/{$modelName}:generateContent?key={$apiKey}";
+            $modelName = 'openai/gpt-4o-mini';
+            $url = 'https://openrouter.ai/api/v1/chat/completions';
 
-Log::info('Calling Gemini API', ['model' => $modelName, 'url' => $url]);
+            Log::info('Calling Open Router API', ['model' => $modelName, 'url' => $url]);
 
-$response = Http::timeout(30)->post($url, [
-    'contents' => [
-        [
-            'role' => 'user',
-            'parts' => [
-                ['text' => $systemPrompt . "\n\nStudent's question: " . $validated['message']]
-            ]
-        ]
-    ],
-    'generationConfig' => [
-        'temperature' => 0.7,
-        'maxOutputTokens' => 1024,
-    ]
-]);
+            $response = Http::timeout(30)->withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->post($url, [
+                'model' => $modelName,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => $systemPrompt,
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $validated['message'],
+                    ],
+                ],
+                'temperature' => 0.7,
+                'max_tokens' => 1024,
+            ]);
 
             if ($response->failed()) {
                 $errorBody = $response->body();
-                Log::error('Gemini API error', [
-                    'status' => $response->status(), 
+                Log::error('Open Router API error', [
+                    'status' => $response->status(),
                     'body' => $errorBody,
-                    'model' => $modelName
+                    'model' => $modelName,
                 ]);
-                
+
                 // Try to parse error message
                 $errorMessage = 'AI service temporarily unavailable.';
-                if ($response->status() === 404) {
+                if ($response->status() === 401) {
+                    $errorMessage = 'Invalid API key. Please check your OPENROUTER_API_KEY.';
+                } elseif ($response->status() === 402) {
+                    $errorMessage = 'Insufficient credits. Please top up your Open Router account.';
+                } elseif ($response->status() === 429) {
+                    $errorMessage = 'Rate limited. Please try again later.';
+                } elseif ($response->status() === 404) {
                     $errorMessage = "AI model '{$modelName}' not found. Please check the model name.";
-                } elseif ($response->status() === 400) {
-                    $errorMessage = 'Invalid request to AI service.';
                 }
-                
+
                 return response()->json(['error' => $errorMessage], 500);
             }
 
             $data = $response->json();
-            Log::info('Gemini API response', ['data' => $data]);
-            
-            $reply = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
-            
+            Log::info('Open Router API response', ['data' => $data]);
+
+            $reply = $data['choices'][0]['message']['content'] ?? null;
+
             if (!$reply) {
-                Log::warning('Empty reply from Gemini', ['data' => $data]);
+                Log::warning('Empty reply from Open Router', ['data' => $data]);
                 return response()->json(['error' => 'AI service returned an empty response.'], 500);
             }
 
