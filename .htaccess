@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Serve Vite build assets from public/build directory
+    RewriteRule ^build/(.*)$ public/build/$1 [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
