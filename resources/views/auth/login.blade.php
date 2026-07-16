@@ -109,7 +109,7 @@
                             <div class="mt-3 bg-red-50 rounded-xl p-4 flex items-start gap-3 border border-red-100">
                                 <i class="fas fa-exclamation-circle text-red-500 mt-0.5 text-lg"></i>
                                 <p class="text-sm font-medium text-red-800 leading-relaxed">
-                                    {!! $errors->first('email') !!}
+                                    {{ $errors->first('email') }}
                                 </p>
                             </div>
                         @endif
@@ -122,7 +122,7 @@
                             </div>
                             <input id="password" type="password" name="password" autocomplete="current-password"
                                 class="w-full pl-11 pr-11 py-3.5 bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter your password">
-                            <button type="button" onclick="const p = document.getElementById('password'); const i = this.querySelector('i'); if(p.type === 'password'){ p.type = 'text'; i.classList.remove('fa-eye-slash'); i.classList.add('fa-eye'); } else { p.type = 'password'; i.classList.remove('fa-eye'); i.classList.add('fa-eye-slash'); }" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
                                 <i class="far fa-eye-slash"></i>
                             </button>
                         </div>

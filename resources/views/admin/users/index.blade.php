@@ -135,7 +135,7 @@
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">Password</label>
                     <div class="relative">
                         <input type="password" name="password" id="reg_password" required class="w-full rounded-lg border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm pr-10">
-                        <button type="button" onclick="const p = document.getElementById('reg_password'); const i = this.querySelector('i'); if(p.type === 'password'){ p.type = 'text'; i.classList.remove('fa-eye-slash'); i.classList.add('fa-eye'); } else { p.type = 'password'; i.classList.remove('fa-eye'); i.classList.add('fa-eye-slash'); }" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                        <button type="button" onclick="togglePasswordVisibility('reg_password', this)" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
                             <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
@@ -165,21 +165,4 @@
         </div>
     </div>
 </div>
-
-<style>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f8fafc; 
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1; 
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; 
-}
-</style>
 @endsection

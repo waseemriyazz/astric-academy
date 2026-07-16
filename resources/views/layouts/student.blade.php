@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-{{-- disabled dark mode: data-theme attribute --}}
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" {{-- @auth data-theme="{{ auth()->user()->theme }}" @endauth --}}>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,20 +14,11 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    {{-- disabled dark mode
-    <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
-    </script>
-    --}}
 </head>
 <body class="font-sans antialiased bg-[#F8FAFC] flex h-screen overflow-hidden text-sm">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-white text-gray-600 flex flex-col h-full shadow-[2px_0_10px_rgba(0,0,0,0.03)] border-r border-gray-100 z-20 transition-all duration-300">
+    <aside class="w-64 bg-white text-gray-600 flex flex-col h-full shadow-[2px_0_10px_rgba(0,0,0,0.03)] border-r border-gray-100 z-20 transition-all duration-300" aria-label="Student navigation sidebar">
         
         <!-- Logo Area -->
         <div class="flex items-center justify-center h-[72px] px-6 border-b border-gray-100">
@@ -77,7 +67,7 @@
         <header class="h-[72px] bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-8 shadow-sm shrink-0">
             <!-- Left Header Area (Hamburger for mobile) -->
             <div class="flex items-center gap-4 flex-1">
-                <button class="text-gray-400 hover:text-gray-600 transition md:hidden">
+                <button class="text-gray-400 hover:text-gray-600 transition md:hidden" aria-label="Toggle sidebar menu">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -90,13 +80,13 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="fas fa-search text-gray-400 text-sm"></i>
                     </div>
-                    <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-gray-400 focus:bg-white" placeholder="Search my courses...">
+                    <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-gray-400 focus:bg-white" placeholder="Search my courses..." aria-label="Search my courses">
                 </div>
 
                 <!-- Notifications -->
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" class="relative text-gray-500 hover:text-indigo-600 transition">
-                        <i class="far fa-bell text-xl"></i>
+                    <button @click="open = !open" class="relative text-gray-500 hover:text-indigo-600 transition" aria-label="Toggle notifications dropdown">
+                        <i class="far fa-bell text-xl" aria-hidden="true"></i>
                     </button>
                     <!-- Dropdown -->
                     <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
