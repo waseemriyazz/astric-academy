@@ -35,7 +35,9 @@
                 <thead>
                     <tr class="bg-gray-50/50 text-gray-500 text-xs font-semibold uppercase tracking-wider border-b border-gray-100">
                         <th class="px-6 py-4">Course Details</th>
-                        <th class="px-6 py-4">Price</th>
+                        <th class="px-6 py-4">Category</th>
+                        <th class="px-6 py-4">Duration</th>
+                        <th class="px-6 py-4">Price Range</th>
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
@@ -54,9 +56,29 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
+                            @if($course->category)
+                            <span class="inline-flex px-2.5 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100/50">
+                                {{ $course->category }}
+                            </span>
+                            @else
+                            <span class="text-gray-400">—</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-gray-700">{{ $course->duration ?? '—' }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @if($course->price_min > 0 || $course->price_max > 0)
+                            <span class="inline-flex px-2.5 py-1 rounded bg-[#e8f5e9] text-[#2e7d32] text-xs font-medium border border-[#c8e6c9]/50">
+                                ${{ number_format($course->price_min, 0) }} - ${{ number_format($course->price_max, 0) }}
+                            </span>
+                            @elseif($course->price > 0)
                             <span class="inline-flex px-2.5 py-1 rounded bg-[#e8f5e9] text-[#2e7d32] text-xs font-medium border border-[#c8e6c9]/50">
                                 ${{ number_format($course->price, 2) }}
                             </span>
+                            @else
+                            <span class="text-gray-400">—</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
@@ -78,7 +100,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="3" class="px-6 py-12 text-center">
+                        <td colspan="5" class="px-6 py-12 text-center">
                             <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-3 text-gray-400">
                                 <i class="fas fa-folder-open text-xl"></i>
                             </div>

@@ -11,6 +11,18 @@ class Course extends Model
         'description',
         'price',
         'tools_count',
+        'category',
+        'duration',
+        'features',
+        'icon_name',
+        'price_min',
+        'price_max',
+        'certificate_config',
+    ];
+
+    protected $casts = [
+        'features' => 'array',
+        'certificate_config' => 'array',
     ];
 
     public function users()

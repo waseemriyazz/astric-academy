@@ -49,6 +49,22 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::get('/courses/{course}/lessons/{lesson}/edit', [\App\Http\Controllers\Admin\AdminLessonController::class, 'edit'])->name('courses.lessons.edit');
     Route::put('/courses/{course}/lessons/{lesson}', [\App\Http\Controllers\Admin\AdminLessonController::class, 'update'])->name('courses.lessons.update');
     Route::delete('/courses/{course}/lessons/{lesson}', [\App\Http\Controllers\Admin\AdminLessonController::class, 'destroy'])->name('courses.lessons.destroy');
+
+    // Testimonials
+    Route::get('/testimonials', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'index'])->name('testimonials.index');
+    Route::get('/testimonials/create', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'create'])->name('testimonials.create');
+    Route::post('/testimonials', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'store'])->name('testimonials.store');
+    Route::get('/testimonials/{testimonial}/edit', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'edit'])->name('testimonials.edit');
+    Route::put('/testimonials/{testimonial}', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'update'])->name('testimonials.update');
+    Route::delete('/testimonials/{testimonial}', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'destroy'])->name('testimonials.destroy');
+
+    // FAQs
+    Route::get('/faqs', [\App\Http\Controllers\Admin\AdminFaqController::class, 'index'])->name('faqs.index');
+    Route::get('/faqs/create', [\App\Http\Controllers\Admin\AdminFaqController::class, 'create'])->name('faqs.create');
+    Route::post('/faqs', [\App\Http\Controllers\Admin\AdminFaqController::class, 'store'])->name('faqs.store');
+    Route::get('/faqs/{faq}/edit', [\App\Http\Controllers\Admin\AdminFaqController::class, 'edit'])->name('faqs.edit');
+    Route::put('/faqs/{faq}', [\App\Http\Controllers\Admin\AdminFaqController::class, 'update'])->name('faqs.update');
+    Route::delete('/faqs/{faq}', [\App\Http\Controllers\Admin\AdminFaqController::class, 'destroy'])->name('faqs.destroy');
 });
 
 Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
