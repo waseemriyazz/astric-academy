@@ -25,21 +25,37 @@ class AdminCourseController extends Controller
         $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'tools_count' => ['required', 'integer', 'min:0'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'duration' => ['nullable', 'string', 'max:50'],
+            'features' => ['nullable', 'string'],
+            'icon_name' => ['nullable', 'string', 'max:100'],
+            'price_min' => ['nullable', 'numeric', 'min:0'],
+            'price_max' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'tools_count' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $course = Course::create($request->only('title', 'description', 'price', 'tools_count'));
+        $data = $request->only([
+            'title', 'description', 'category', 'duration', 'icon_name',
+            'price_min', 'price_max', 'price', 'tools_count'
+        ]);
+
+        // Convert features from textarea to array
+        if ($request->filled('features')) {
+            $features = array_filter(array_map('trim', explode("\n", $request->features)));
+            $data['features'] = $features;
+        }
+
+        $course = Course::create($data);
 
         Log::info('Admin created course', [
             'admin_id' => auth()->id(),
             'course_id' => $course->id,
             'title' => $course->title,
-            'price' => $course->price,
         ]);
 
-        // Redirect immediately to lessons page so they can add content
-        return redirect()->route('admin.courses.lessons.index', $course)->with('success', 'Course created! Now add your lessons.');
+        return redirect()->route('admin.courses.lessons.index', $course)
+            ->with('success', 'Course created! Now add your lessons.');
     }
 
     public function edit(Course $course)
@@ -52,11 +68,30 @@ class AdminCourseController extends Controller
         $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'tools_count' => ['required', 'integer', 'min:0'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'duration' => ['nullable', 'string', 'max:50'],
+            'features' => ['nullable', 'string'],
+            'icon_name' => ['nullable', 'string', 'max:100'],
+            'price_min' => ['nullable', 'numeric', 'min:0'],
+            'price_max' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'tools_count' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $course->update($request->only('title', 'description', 'price', 'tools_count'));
+        $data = $request->only([
+            'title', 'description', 'category', 'duration', 'icon_name',
+            'price_min', 'price_max', 'price', 'tools_count'
+        ]);
+
+        // Convert features from textarea to array
+        if ($request->filled('features')) {
+            $features = array_filter(array_map('trim', explode("\n", $request->features)));
+            $data['features'] = $features;
+        } else {
+            $data['features'] = [];
+        }
+
+        $course->update($data);
 
         Log::info('Admin updated course', [
             'admin_id' => auth()->id(),
