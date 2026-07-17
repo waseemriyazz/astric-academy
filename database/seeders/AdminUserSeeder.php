@@ -10,11 +10,20 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $email = env('ADMIN_EMAIL');
+        $name = env('ADMIN_NAME', 'Administrator');
+        $password = env('ADMIN_PASSWORD');
+
+        if (!$email) {
+            $this->command->error('ADMIN_EMAIL is not set in .env file. Skipping admin user creation.');
+            return;
+        }
+
         User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL')],
+            ['email' => $email],
             [
-                'name' => env('ADMIN_NAME', 'Administrator'),
-                'password' => Hash::make(env('ADMIN_PASSWORD')),
+                'name' => $name,
+                'password' => Hash::make($password ?: 'password'),
                 'role' => 'admin',
             ]
         );
