@@ -57,6 +57,16 @@
                 <span class="font-semibold">Enrolled Courses</span>
             </a>
             
+            <a href="{{ route('admin.testimonials.index') }}" class="{{ request()->routeIs('admin.testimonials.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+                <i class="fas fa-quote-right w-5 text-center text-lg {{ request()->routeIs('admin.testimonials.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
+                <span class="font-semibold">Testimonials</span>
+            </a>
+            
+            <a href="{{ route('admin.faqs.index') }}" class="{{ request()->routeIs('admin.faqs.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+                <i class="fas fa-question-circle w-5 text-center text-lg {{ request()->routeIs('admin.faqs.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
+                <span class="font-semibold">FAQs</span>
+            </a>
+            
             <a href="{{ route('admin.certificates.index') }}" class="{{ request()->routeIs('admin.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-certificate w-5 text-center text-lg {{ request()->routeIs('admin.certificates.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Certificates</span>
