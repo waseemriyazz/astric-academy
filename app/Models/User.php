@@ -54,4 +54,20 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    /**
+     * Check if the user is enrolled in a specific course.
+     */
+    public function isEnrolledIn(Course $course): bool
+    {
+        return $this->courses()->where('course_id', $course->id)->exists();
+    }
+
+    /**
+     * Enroll the user in a course. Idempotent — won't duplicate.
+     */
+    public function enrollIn(Course $course): void
+    {
+        $this->courses()->syncWithoutDetaching([$course->id]);
+    }
 }
