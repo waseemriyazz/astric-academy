@@ -8,15 +8,13 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CoursePurchased extends Notification
+class CourseEnrolled extends Notification
 {
     use Queueable;
 
     public function __construct(
         public Payment $payment,
-        public Course $course,
-        public bool $isNewUser = false,
-        public ?string $password = null
+        public Course $course
     ) {}
 
     public function via(object $notifiable): array
@@ -30,33 +28,21 @@ class CoursePurchased extends Notification
         $appName = config('app.name');
         $loginUrl = $frontendUrl . '/login?email=' . urlencode($notifiable->email);
 
-        $mail = (new MailMessage)
-            ->subject('Welcome to ' . $appName . ' — Your Enrollment is Confirmed!')
+        return (new MailMessage)
+            ->subject('Welcome back to ' . $appName . ' — New Enrollment Confirmed!')
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Thank you for choosing ' . $appName . '. Your enrollment has been successfully confirmed.')
+            ->line('Great news! You have successfully enrolled in a new course on ' . $appName . '.')
             ->line('---')
             ->line('**Course:** ' . $this->course->title)
             ->line('**Transaction ID:** ' . $this->payment->txnid)
             ->line('**Amount Paid:** ₹' . number_format((float) $this->payment->amount, 2))
             ->line('**Date:** ' . $this->payment->created_at->format('F j, Y, g:i a'))
-            ->line('---');
-
-        if ($this->isNewUser && $this->password) {
-            $mail->line('**Your Student Account Has Been Created**')
-                ->line('You can now log in to your student portal using the credentials below:')
-                ->line('**Email:** ' . $notifiable->email)
-                ->line('**Password:** ' . $this->password)
-                ->line('Please change your password after logging in for the first time.')
-                ->line('---');
-        }
-
-        $mail->line('You can access your course materials and start learning from your student dashboard.')
-            ->action('Login to Your Dashboard', $loginUrl)
+            ->line('---')
+            ->line('You can now access your new course from your student dashboard.')
+            ->action('Go to Your Dashboard', $loginUrl)
             ->line('If you have any questions, feel free to contact our support team at support@astryxacademy.com.')
             ->line('---')
             ->line('Best regards,')
             ->line('The ' . $appName . ' Team');
-
-        return $mail;
     }
 }

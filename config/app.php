@@ -135,4 +135,17 @@ return [
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Callback URLs
+    |--------------------------------------------------------------------------
+    |
+    | These URLs are used for Easebuzz success/failure callbacks.
+    | Must be publicly accessible in production.
+    |
+    */
+
+    'payment_success_url' => env('PAYMENT_SUCCESS_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/success'),
+    'payment_failure_url' => env('PAYMENT_FAILURE_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/failure'),
+
 ];

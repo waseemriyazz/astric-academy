@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     const STATUS_PENDING = 'pending';
+    const STATUS_PROCESSING = 'processing';
     const STATUS_PAID = 'paid';
     const STATUS_FAILED = 'failed';
     const STATUS_CANCELLED = 'cancelled';

@@ -203,6 +203,56 @@ class EasebuzzService
     }
 
     /**
+     * Initiate a payment with Easebuzz API and get the access_key.
+     *
+     * @param array $params Payment parameters (txnid, amount, productinfo, firstname, email, phone, surl, furl, etc.)
+     * @return array{success: bool, access_key?: string, redirect_url?: string, error?: string}
+     */
+    public function initiatePayment(array $params): array
+    {
+        // Include the Easebuzz library
+        require_once __DIR__ . '/../Lib/Easebuzz/utils.php';
+
+        // Call the Easebuzz initiate API
+        $result = _callInitiatePaymentAPI($params, $this->merchantKey, $this->salt, $this->env);
+
+        if ($result['status'] !== 1) {
+            $error = is_object($result['data']) ? json_encode($result['data']) : (string) $result['data'];
+            Log::error('Easebuzz: Initiate payment API failed', [
+                'error' => $error,
+                'txnid' => $params['txnid'] ?? 'N/A',
+            ]);
+            return ['success' => false, 'error' => $error];
+        }
+
+        $accessKey = $result['data'];
+
+        // Validate access_key format — must be exactly 64 hex chars
+        if (empty($accessKey) || !preg_match('/^[a-f0-9]{64}$/', $accessKey)) {
+            Log::error('Easebuzz: Invalid access key received', [
+                'access_key' => substr($accessKey, 0, 10) . '...',
+                'txnid' => $params['txnid'] ?? 'N/A',
+            ]);
+            return ['success' => false, 'error' => 'Invalid access key received from Easebuzz'];
+        }
+
+        // Build redirect URL
+        $redirectUrl = $this->getPaymentUrl() . $accessKey;
+
+        Log::info('Easebuzz: Payment initiated successfully', [
+            'txnid' => $params['txnid'] ?? 'N/A',
+            'access_key' => substr($accessKey, 0, 10) . '...',
+            'redirect_url' => $redirectUrl,
+        ]);
+
+        return [
+            'success' => true,
+            'access_key' => $accessKey,
+            'redirect_url' => $redirectUrl,
+        ];
+    }
+
+    /**
      * Check if Easebuzz credentials are configured.
      */
     public function isConfigured(): bool
