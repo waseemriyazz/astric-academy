@@ -276,10 +276,10 @@
                 {{-- Price badge — top-left corner --}}
                 <div class="absolute top-4 left-4 z-10">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm
-                        {{ !is_null($course->price) && $course->price > 0 ? 'bg-white/90 backdrop-blur text-indigo-700' : 'bg-emerald-500/90 backdrop-blur text-white' }}">
+                        {{ !is_null($course->price_max) && $course->price_max > 0 ? 'bg-white/90 backdrop-blur text-indigo-700' : 'bg-emerald-500/90 backdrop-blur text-white' }}">
                         <i class="fas fa-tag text-[10px]"></i>
-                        @if(!is_null($course->price) && $course->price > 0)
-                            ${{ number_format($course->price, 2) }}
+                        @if(!is_null($course->price_max) && $course->price_max > 0)
+                            ${{ number_format($course->price_max, 2) }}
                         @else
                             Free
                         @endif
