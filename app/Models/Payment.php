@@ -12,6 +12,7 @@ class Payment extends Model
     const STATUS_FAILED = 'failed';
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_REFUNDED = 'refunded';
+    const STATUS_EXPIRED = 'expired';
 
     protected $fillable = [
         'txnid',

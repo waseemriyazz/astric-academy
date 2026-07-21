@@ -7,15 +7,12 @@ use App\Http\Requests\PaymentInitiateRequest;
 use App\Models\Course;
 use App\Models\Payment;
 use App\Models\User;
-use App\Notifications\CourseEnrolled;
-use App\Notifications\CoursePurchased;
 use App\Services\EasebuzzService;
+use App\Services\PaymentFulfillmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -29,7 +26,10 @@ class PaymentController extends Controller
         'AED' => 3.67,
     ];
 
-    public function __construct(private readonly EasebuzzService $easebuzz) {}
+    public function __construct(
+        private readonly EasebuzzService $easebuzz,
+        private readonly PaymentFulfillmentService $fulfillment,
+    ) {}
 
     public function checkout(Request $request): JsonResponse
     {
@@ -91,6 +91,32 @@ class PaymentController extends Controller
                     'course_title' => $course->title,
                 ],
             ], 409);
+        }
+
+        // Flow-level idempotency: a leftover pending attempt for the same buyer+course
+        // (abandoned tab, retried request, double submit) must not stay live alongside
+        // a fresh one — supersede it so at most one payment is ever "pending" per
+        // buyer+course. If that old attempt is later completed anyway, the fulfillment
+        // service still catches it via the duplicate-purchase check and flags it for review.
+        $staleAttempts = Payment::where('buyer_email', $request->buyer_email)
+            ->where('course_id', $course->id)
+            ->where('status', Payment::STATUS_PENDING)
+            ->get();
+
+        foreach ($staleAttempts as $stale) {
+            $stale->update([
+                'status' => Payment::STATUS_EXPIRED,
+                'gateway_response' => array_merge($stale->gateway_response ?? [], [
+                    'superseded_at' => now()->toIso8601String(),
+                    'superseded_reason' => 'A new checkout attempt was started for the same course before this one completed.',
+                ]),
+            ]);
+
+            Log::info('PAYMENT: Superseded stale pending attempt', [
+                'old_payment_id' => $stale->id,
+                'old_txnid' => $stale->txnid,
+                'course_id' => $course->id,
+            ]);
         }
 
         $txnid = $this->easebuzz->generateTxnId();
@@ -208,9 +234,11 @@ class PaymentController extends Controller
             return $this->redirectToFrontend('failed', $txnid, 'Transaction not found');
         }
 
-        // Atomic check/update to prevent race condition
+        // Atomic check/update to prevent race condition. FAILED/EXPIRED are reclaimable
+        // too — hash verification still runs fresh below, so a transient earlier failure
+        // (e.g. a flaky Transaction API call) doesn't permanently strand a real payment.
         $updated = Payment::where('txnid', $txnid)
-            ->where('status', Payment::STATUS_PENDING)
+            ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_FAILED, Payment::STATUS_EXPIRED])
             ->update([
                 'status' => Payment::STATUS_PROCESSING,
                 'payment_id' => $request->input('easebuzz_id', $request->input('payment_id')),
@@ -224,12 +252,18 @@ class PaymentController extends Controller
             ]);
 
         if (!$updated) {
-            // Already processed by another request
+            // Another request (webhook or a concurrent surl hit) is already handling this
+            // txnid. Rather than trusting a possibly mid-flight snapshot, wait briefly for
+            // it to reach a terminal state so we don't tell a paying customer it failed.
             Log::info('PAYMENT SUCCESS: Already processed (race condition handled)', ['txnid' => $txnid]);
-            $currentStatus = $payment->fresh()->status;
+            $currentStatus = $this->awaitTerminalStatus($payment);
             $redirectStatus = $currentStatus === Payment::STATUS_PAID ? 'success' : 'failed';
             return $this->redirectToFrontend($redirectStatus, $txnid);
         }
+
+        // Reload — the atomic claim above wrote callback_data into gateway_response
+        // via a raw query, which this in-memory model instance doesn't have yet.
+        $payment->refresh();
 
         // Verify response hash
         $hashValid = $this->easebuzz->verifyResponseHash($request->all());
@@ -313,84 +347,16 @@ class PaymentController extends Controller
 
         // Process the successful payment
         try {
-            DB::beginTransaction();
+            $this->fulfillment->fulfill($payment);
 
-            $user = User::where('email', $payment->buyer_email)->first();
-            $isNewUser = false;
-            $plainPassword = null;
-
-            if (!$user) {
-                $plainPassword = Str::password(16);
-                $user = User::create([
-                    'name' => $payment->buyer_name,
-                    'email' => $payment->buyer_email,
-                    'password' => $plainPassword, // 'hashed' cast handles bcrypt automatically
-                    'role' => 'student',
-                ]);
-                $isNewUser = true;
-
-                Log::info('PAYMENT SUCCESS: New user created', [
-                    'user_id' => $user->id,
-                    'email' => $this->maskValue($user->email),
-                ]);
-            } else {
-                Log::info('PAYMENT SUCCESS: Existing user found', [
-                    'user_id' => $user->id,
-                    'email' => $this->maskValue($user->email),
-                ]);
-            }
-
-            $payment->update(['user_id' => $user->id, 'status' => Payment::STATUS_PAID]);
-
-            $course = $payment->course;
-            $user->enrollIn($course);
-
-            DB::commit();
-
-            // Send appropriate email based on user type
-            try {
-                if ($isNewUser) {
-                    $user->notify(new CoursePurchased(
-                        payment: $payment,
-                        course: $course,
-                        isNewUser: true,
-                        password: $plainPassword
-                    ));
-                } else {
-                    $user->notify(new CourseEnrolled(
-                        payment: $payment,
-                        course: $course
-                    ));
-                }
-
-                Log::info('PAYMENT SUCCESS: Email notification sent', [
-                    'user_id' => $user->id,
-                    'email' => $this->maskValue($user->email),
-                    'is_new_user' => $isNewUser,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('PAYMENT SUCCESS: Failed to send email', [
-                    'user_id' => $user->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-
-            Log::info('=== PAYMENT SUCCESS COMPLETED ===', [
-                'txnid' => $txnid,
-                'user_id' => $user->id,
-                'course_id' => $course->id,
-                'is_new_user' => $isNewUser,
-            ]);
+            Log::info('=== PAYMENT SUCCESS COMPLETED ===', ['txnid' => $txnid]);
 
             return $this->redirectToFrontend('success', $txnid);
 
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('PAYMENT SUCCESS: Database error', [
+            Log::error('PAYMENT SUCCESS: Fulfillment error', [
                 'txnid' => $txnid,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return $this->redirectToFrontend('failed', $txnid, 'An error occurred while processing your payment. Please contact support.');
@@ -451,9 +417,11 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Transaction not found'], 404);
         }
 
-        // Atomic check/update to prevent race condition
+        // Atomic check/update to prevent race condition. FAILED/EXPIRED are reclaimable
+        // too — hash verification still runs fresh below, so a transient earlier failure
+        // doesn't permanently strand a real payment.
         $updated = Payment::where('txnid', $txnid)
-            ->where('status', Payment::STATUS_PENDING)
+            ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_FAILED, Payment::STATUS_EXPIRED])
             ->update([
                 'status' => Payment::STATUS_PROCESSING,
                 'gateway_response' => array_merge(
@@ -469,6 +437,10 @@ class PaymentController extends Controller
             Log::info('WEBHOOK: Already processed (race condition handled)', ['txnid' => $txnid]);
             return response()->json(['status' => 'ok', 'message' => 'Already processed']);
         }
+
+        // Reload — the atomic claim above wrote webhook_data into gateway_response
+        // via a raw query, which this in-memory model instance doesn't have yet.
+        $payment->refresh();
 
         // Verify hash
         $hashValid = $this->easebuzz->verifyResponseHash($request->all());
@@ -536,59 +508,12 @@ class PaymentController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-
-            $user = User::where('email', $payment->buyer_email)->first();
-            $isNewUser = false;
-            $plainPassword = null;
-
-            if (!$user) {
-                $plainPassword = Str::password(16);
-                $user = User::create([
-                    'name' => $payment->buyer_name,
-                    'email' => $payment->buyer_email,
-                    'password' => $plainPassword, // 'hashed' cast handles bcrypt automatically
-                    'role' => 'student',
-                ]);
-                $isNewUser = true;
-            }
-
-            $payment->update(['user_id' => $user->id, 'status' => Payment::STATUS_PAID]);
-
-            $course = $payment->course;
-            $user->enrollIn($course);
-
-            DB::commit();
-
-            try {
-                if ($isNewUser) {
-                    $user->notify(new CoursePurchased(
-                        payment: $payment,
-                        course: $course,
-                        isNewUser: true,
-                        password: $plainPassword
-                    ));
-                } else {
-                    $user->notify(new CourseEnrolled(
-                        payment: $payment,
-                        course: $course
-                    ));
-                }
-
-                Log::info('WEBHOOK: Email sent', [
-                    'user_id' => $user->id,
-                    'email' => $this->maskValue($user->email),
-                    'is_new_user' => $isNewUser,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('WEBHOOK: Email failed', ['error' => $e->getMessage()]);
-            }
+            $this->fulfillment->fulfill($payment);
 
             return response()->json(['status' => 'ok']);
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('WEBHOOK: Database error', ['error' => $e->getMessage()]);
+            Log::error('WEBHOOK: Fulfillment error', ['txnid' => $txnid, 'error' => $e->getMessage()]);
             return response()->json(['error' => 'Internal server error'], 500);
         }
     }
@@ -650,5 +575,25 @@ class PaymentController extends Controller
         }
 
         return $value[0] . str_repeat('*', $length - 2) . $value[$length - 1];
+    }
+
+    /**
+     * Poll briefly for a payment to leave 'processing'. Used when this request lost the
+     * atomic claim to a concurrent webhook/surl hit — the winner is still mid-flight
+     * (gateway verification + DB write + email), so an immediate read of a 'processing'
+     * snapshot would wrongly report failure to a customer who was actually just charged.
+     */
+    private function awaitTerminalStatus(Payment $payment, int $maxWaitMs = 6000, int $intervalMs = 300): string
+    {
+        $status = $payment->fresh()->status;
+        $waited = 0;
+
+        while ($status === Payment::STATUS_PROCESSING && $waited < $maxWaitMs) {
+            usleep($intervalMs * 1000);
+            $waited += $intervalMs;
+            $status = $payment->fresh()->status;
+        }
+
+        return $status;
     }
 }
