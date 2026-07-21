@@ -24,9 +24,9 @@ class CourseEnrolled extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+        $portalUrl = config('app.portal_url', 'http://localhost:8000');
         $appName = config('app.name');
-        $loginUrl = $frontendUrl . '/login?email=' . urlencode($notifiable->email);
+        $loginUrl = $portalUrl . '/login?email=' . urlencode($notifiable->email);
 
         return (new MailMessage)
             ->subject('Welcome back to ' . $appName . ' — New Enrollment Confirmed!')

@@ -52,7 +52,7 @@ class PaymentController extends Controller
     {
         Log::info('=== PAYMENT INITIATE STARTED ===', [
             'ip' => $request->ip(),
-            'payload' => $request->validated(),
+            'payload' => $this->redactForLogging($request->validated()),
         ]);
 
         $course = Course::findOrFail($request->course_id);
@@ -78,7 +78,7 @@ class PaymentController extends Controller
         if ($alreadyEnrolled) {
             Log::info('PAYMENT: User already enrolled in this course', [
                 'user_id' => $existingUser->id,
-                'email' => $existingUser->email,
+                'email' => $this->maskValue($existingUser->email),
                 'course_id' => $course->id,
             ]);
 
@@ -113,36 +113,16 @@ class PaymentController extends Controller
             'status' => Payment::STATUS_PENDING,
         ]);
 
-        // Check if Easebuzz is configured
+        // Ensure payment gateway is configured — no demo/bypass mode allowed
         if (!$this->easebuzz->isConfigured()) {
-            Log::info('PAYMENT: DEMO MODE — No Easebuzz credentials configured.');
-
-            $surl = route('payment.success') . '?txnid=' . $txnid;
-            $furl = route('payment.failure') . '?txnid=' . $txnid;
+            Log::error('PAYMENT: Gateway not configured. Cannot process payments.', [
+                'txnid' => $txnid,
+            ]);
 
             return response()->json([
-                'success' => true,
-                'data' => [
-                    'key' => '',
-                    'txnid' => $txnid,
-                    'amount' => (string) $amountInr,
-                    'productinfo' => $course->title,
-                    'firstname' => $request->buyer_name,
-                    'email' => $request->buyer_email,
-                    'phone' => $request->buyer_phone,
-                    'hash' => '',
-                    'surl' => $surl,
-                    'furl' => $furl,
-                    'udf1' => (string) $course->id,
-                    'udf2' => '',
-                    'udf3' => '',
-                    'udf4' => '',
-                    'udf5' => '',
-                    'payment_url' => $surl,
-                    'course_title' => $course->title,
-                    'demo_mode' => true,
-                ],
-            ]);
+                'success' => false,
+                'message' => 'Payment gateway is not configured. Please contact support.',
+            ], 503);
         }
 
         $surl = config('app.payment_success_url');
@@ -191,7 +171,7 @@ class PaymentController extends Controller
             'amount_inr' => $amountInr,
             'redirect_url' => $initiateResult['redirect_url'],
             'course' => $course->title,
-            'customer_email' => $request->buyer_email,
+            'customer_email' => $this->maskValue($request->buyer_email),
         ]);
 
         return response()->json([
@@ -202,7 +182,6 @@ class PaymentController extends Controller
                 'productinfo' => $course->title,
                 'redirect_url' => $initiateResult['redirect_url'],
                 'course_title' => $course->title,
-                'demo_mode' => false,
             ],
         ]);
     }
@@ -210,7 +189,7 @@ class PaymentController extends Controller
     public function success(Request $request): RedirectResponse
     {
         Log::info('=== PAYMENT SUCCESS CALLBACK RECEIVED ===', [
-            'all_params' => $request->all(),
+            'all_params' => $this->redactForLogging($request->all()),
             'ip' => $request->ip(),
         ]);
 
@@ -283,8 +262,28 @@ class PaymentController extends Controller
             'is_success' => $isTransactionSuccess,
         ]);
 
-        if (!$isTransactionSuccess && $this->easebuzz->isConfigured()) {
-            Log::warning('PAYMENT SUCCESS: Transaction verification returned non-success', [
+        // Environment-aware transaction verification
+        // In production: hard-block if verification fails (real money involved)
+        // In test: log a warning but allow (test sandbox Transaction API is unreliable)
+        if (!$isTransactionSuccess) {
+            if ($this->easebuzz->isProduction()) {
+                Log::warning('PAYMENT SUCCESS: Transaction verification failed — blocking enrollment', [
+                    'txnid' => $txnid,
+                    'verification' => $verification,
+                ]);
+
+                Payment::where('txnid', $txnid)->update([
+                    'status' => Payment::STATUS_FAILED,
+                    'gateway_response' => array_merge(
+                        $payment->gateway_response ?? [],
+                        ['error' => 'Transaction verification failed with Easebuzz']
+                    ),
+                ]);
+
+                return $this->redirectToFrontend('failed', $txnid, 'Transaction could not be verified. Please contact support.');
+            }
+
+            Log::warning('PAYMENT SUCCESS: Transaction verification failed in TEST mode — allowing enrollment', [
                 'txnid' => $txnid,
                 'verification' => $verification,
             ]);
@@ -325,23 +324,23 @@ class PaymentController extends Controller
                 $user = User::create([
                     'name' => $payment->buyer_name,
                     'email' => $payment->buyer_email,
-                    'password' => bcrypt($plainPassword),
+                    'password' => $plainPassword, // 'hashed' cast handles bcrypt automatically
                     'role' => 'student',
                 ]);
                 $isNewUser = true;
 
                 Log::info('PAYMENT SUCCESS: New user created', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $this->maskValue($user->email),
                 ]);
             } else {
                 Log::info('PAYMENT SUCCESS: Existing user found', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $this->maskValue($user->email),
                 ]);
             }
 
-            $payment->update(['user_id' => $user->id]);
+            $payment->update(['user_id' => $user->id, 'status' => Payment::STATUS_PAID]);
 
             $course = $payment->course;
             $user->enrollIn($course);
@@ -366,7 +365,7 @@ class PaymentController extends Controller
 
                 Log::info('PAYMENT SUCCESS: Email notification sent', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $this->maskValue($user->email),
                     'is_new_user' => $isNewUser,
                 ]);
             } catch (\Exception $e) {
@@ -401,7 +400,7 @@ class PaymentController extends Controller
     public function failure(Request $request): RedirectResponse
     {
         Log::info('=== PAYMENT FAILURE CALLBACK RECEIVED ===', [
-            'all_params' => $request->all(),
+            'all_params' => $this->redactForLogging($request->all()),
             'ip' => $request->ip(),
         ]);
 
@@ -435,7 +434,7 @@ class PaymentController extends Controller
     public function webhook(Request $request)
     {
         Log::info('=== EASEBUZZ WEBHOOK RECEIVED ===', [
-            'all_params' => $request->all(),
+            'all_params' => $this->redactForLogging($request->all()),
             'ip' => $request->ip(),
         ]);
 
@@ -487,6 +486,40 @@ class PaymentController extends Controller
             return response()->json(['status' => 'ok']);
         }
 
+        // Verify transaction with Easebuzz API (server-to-server)
+        $verification = $this->easebuzz->verifyTransaction($txnid);
+
+        $transactionStatus = $verification['data']['txn_status'] ?? $verification['data']['status'] ?? null;
+        $isTransactionSuccess = ($verification['status'] === 1)
+            && in_array(strtolower($transactionStatus ?? ''), ['success', 'completed']);
+
+        // Environment-aware transaction verification
+        // In production: hard-block if verification fails (real money involved)
+        // In test: log a warning but allow (test sandbox Transaction API is unreliable)
+        if (!$isTransactionSuccess) {
+            if ($this->easebuzz->isProduction()) {
+                Log::warning('WEBHOOK: Transaction verification failed — blocking enrollment', [
+                    'txnid' => $txnid,
+                    'verification' => $verification,
+                ]);
+
+                Payment::where('txnid', $txnid)->update([
+                    'status' => Payment::STATUS_FAILED,
+                    'gateway_response' => array_merge(
+                        $payment->gateway_response ?? [],
+                        ['error' => 'Transaction verification failed with Easebuzz']
+                    ),
+                ]);
+
+                return response()->json(['error' => 'Transaction verification failed'], 400);
+            }
+
+            Log::warning('WEBHOOK: Transaction verification failed in TEST mode — allowing enrollment', [
+                'txnid' => $txnid,
+                'verification' => $verification,
+            ]);
+        }
+
         // Amount validation
         $easebuzzAmount = $request->input('amount');
         $ourAmount = number_format((float) $payment->amount, 2, '.', '');
@@ -514,13 +547,13 @@ class PaymentController extends Controller
                 $user = User::create([
                     'name' => $payment->buyer_name,
                     'email' => $payment->buyer_email,
-                    'password' => bcrypt($plainPassword),
+                    'password' => $plainPassword, // 'hashed' cast handles bcrypt automatically
                     'role' => 'student',
                 ]);
                 $isNewUser = true;
             }
 
-            $payment->update(['user_id' => $user->id]);
+            $payment->update(['user_id' => $user->id, 'status' => Payment::STATUS_PAID]);
 
             $course = $payment->course;
             $user->enrollIn($course);
@@ -544,7 +577,7 @@ class PaymentController extends Controller
 
                 Log::info('WEBHOOK: Email sent', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $this->maskValue($user->email),
                     'is_new_user' => $isNewUser,
                 ]);
             } catch (\Exception $e) {
@@ -580,5 +613,42 @@ class PaymentController extends Controller
         Log::info('Redirecting to frontend', ['url' => $url]);
 
         return redirect()->away($url);
+    }
+
+    /**
+     * Recursively mask PII fields (name/email/phone) in a payload before it hits the logs.
+     * Values are stored raw in the DB (gateway_response) for reconciliation; only log output is redacted.
+     */
+    private function redactForLogging(array $data): array
+    {
+        $sensitiveKeys = ['name', 'firstname', 'buyer_name', 'email', 'buyer_email', 'phone', 'buyer_phone'];
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->redactForLogging($value);
+                continue;
+            }
+
+            if (in_array(strtolower((string) $key), $sensitiveKeys, true)) {
+                $data[$key] = $this->maskValue((string) $value);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Mask a string, keeping only the first and last character (e.g. "j***e@example.com" -> "j***m").
+     */
+    private function maskValue(?string $value): string
+    {
+        $value = (string) $value;
+        $length = strlen($value);
+
+        if ($length <= 2) {
+            return str_repeat('*', $length);
+        }
+
+        return $value[0] . str_repeat('*', $length - 2) . $value[$length - 1];
     }
 }

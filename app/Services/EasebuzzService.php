@@ -19,11 +19,12 @@ class EasebuzzService
     }
 
     /**
-     * Generate a unique transaction ID.
+     * Generate a unique transaction ID using UUID (hyphens removed for Easebuzz compatibility).
+     * Easebuzz requires: a-zA-Z0-9_|\-\/ only, max 40 chars.
      */
     public function generateTxnId(): string
     {
-        return 'ASTRX_' . time() . '_' . Str::random(8);
+        return 'ASTRX_' . str_replace('-', '', (string) Str::uuid());
     }
 
     /**
@@ -258,6 +259,14 @@ class EasebuzzService
     public function isConfigured(): bool
     {
         return !empty($this->merchantKey) && !empty($this->salt);
+    }
+
+    /**
+     * Check if running in production mode.
+     */
+    public function isProduction(): bool
+    {
+        return $this->env === 'prod';
     }
 
     /**

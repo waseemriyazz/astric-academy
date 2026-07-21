@@ -148,4 +148,17 @@ return [
     'payment_success_url' => env('PAYMENT_SUCCESS_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/success'),
     'payment_failure_url' => env('PAYMENT_FAILURE_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/failure'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Portal URL (Student Dashboard)
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used in email notifications for the login/dashboard link.
+    | Dev: http://localhost:8000
+    | Prod: https://portal.astryxacademy.com
+    |
+    */
+
+    'portal_url' => env('PORTAL_URL', 'http://localhost:8000'),
+
 ];
