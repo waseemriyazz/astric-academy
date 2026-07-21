@@ -1,8 +1,9 @@
 *.log
 .DS_Store
 .env
-.env.backup
+.env.backup*
 .env.production
+database/*.sqlite.backup*
 .phpactor.json
 .phpunit.result.cache
 /.codex
