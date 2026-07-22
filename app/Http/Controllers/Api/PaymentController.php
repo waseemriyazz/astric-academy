@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Contracts\PaymentGatewayContract;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentInitiateRequest;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\PaymentGatewayConfig;
 use App\Models\User;
 use App\Services\EasebuzzService;
+use App\Services\PayGlocalService;
 use App\Services\PaymentFulfillmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +31,7 @@ class PaymentController extends Controller
 
     public function __construct(
         private readonly EasebuzzService $easebuzz,
+        private readonly PayGlocalService $payglocal,
         private readonly PaymentFulfillmentService $fulfillment,
     ) {}
 
@@ -119,7 +123,34 @@ class PaymentController extends Controller
             ]);
         }
 
-        $txnid = $this->easebuzz->generateTxnId();
+        // Determine which gateway is active — admin controls this, frontend never knows.
+        $activeGatewayConfig = PaymentGatewayConfig::where('is_active', true)->first();
+
+        if (!$activeGatewayConfig) {
+            Log::error('PAYMENT: No payment gateway is active');
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No payment gateway is active. Please contact support.',
+            ], 503);
+        }
+
+        $gatewayName = $activeGatewayConfig->gateway;
+        $gatewayService = $this->resolveGatewayService($gatewayName);
+
+        // Ensure payment gateway is configured — no demo/bypass mode allowed
+        if (!$gatewayService->isConfigured()) {
+            Log::error('PAYMENT: Gateway not configured. Cannot process payments.', [
+                'gateway' => $gatewayName,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment gateway is not configured. Please contact support.',
+            ], 503);
+        }
+
+        $txnid = $gatewayService->generateTxnId();
 
         $payment = Payment::create([
             'txnid' => $txnid,
@@ -129,59 +160,24 @@ class PaymentController extends Controller
             'buyer_phone' => $request->buyer_phone,
             'amount' => $amountInr,
             'currency' => 'INR',
-            'gateway' => 'easebuzz',
+            'gateway' => $gatewayName,
             'status' => Payment::STATUS_PENDING,
         ]);
 
         Log::info('PAYMENT: DB record created', [
             'payment_id' => $payment->id,
             'txnid' => $txnid,
+            'gateway' => $gatewayName,
             'status' => Payment::STATUS_PENDING,
         ]);
 
-        // Ensure payment gateway is configured — no demo/bypass mode allowed
-        if (!$this->easebuzz->isConfigured()) {
-            Log::error('PAYMENT: Gateway not configured. Cannot process payments.', [
-                'txnid' => $txnid,
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment gateway is not configured. Please contact support.',
-            ], 503);
-        }
-
-        $surl = config('app.payment_success_url');
-        $furl = config('app.payment_failure_url');
-
-        $productinfo = preg_replace('/[^a-zA-Z0-9\s\-|]/', '', $course->title);
-        $productinfo = trim(substr($productinfo, 0, 45));
-
-        $params = [
-            'txnid' => $txnid,
-            'amount' => number_format($amountInr, 2, '.', ''),
-            'productinfo' => $productinfo,
-            'firstname' => $request->buyer_name,
-            'email' => $request->buyer_email,
-            'phone' => $request->buyer_phone,
-            'surl' => $surl,
-            'furl' => $furl,
-            'udf1' => (string) $course->id,
-            'udf2' => $txnid,
-            'udf3' => '',
-            'udf4' => '',
-            'udf5' => '',
-            'udf6' => '',
-            'udf7' => '',
-            'udf8' => '',
-            'udf9' => '',
-            'udf10' => '',
-        ];
-
-        $initiateResult = $this->easebuzz->initiatePayment($params);
+        $initiateResult = $gatewayName === PaymentGatewayConfig::GATEWAY_PAYGLOCAL
+            ? $this->initiatePayGlocal($payment, $course, $request, $amountInr)
+            : $this->initiateEasebuzz($payment, $course, $request, $amountInr);
 
         if (!$initiateResult['success']) {
-            Log::error('PAYMENT: Easebuzz initiate API failed', [
+            Log::error('PAYMENT: Gateway initiate API failed', [
+                'gateway' => $gatewayName,
                 'txnid' => $txnid,
                 'error' => $initiateResult['error'],
             ]);
@@ -193,6 +189,7 @@ class PaymentController extends Controller
         }
 
         Log::info('=== PAYMENT INITIATE COMPLETED ===', [
+            'gateway' => $gatewayName,
             'txnid' => $txnid,
             'amount_inr' => $amountInr,
             'redirect_url' => $initiateResult['redirect_url'],
@@ -212,96 +209,202 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function success(Request $request): RedirectResponse
+    /**
+     * @return array{success: bool, redirect_url?: string, error?: string}
+     */
+    private function initiateEasebuzz(Payment $payment, Course $course, PaymentInitiateRequest $request, float $amountInr): array
     {
-        Log::info('=== PAYMENT SUCCESS CALLBACK RECEIVED ===', [
-            'all_params' => $this->redactForLogging($request->all()),
-            'ip' => $request->ip(),
+        $productinfo = preg_replace('/[^a-zA-Z0-9\s\-|]/', '', $course->title);
+        $productinfo = trim(substr($productinfo, 0, 45));
+
+        $params = [
+            'txnid' => $payment->txnid,
+            'amount' => number_format($amountInr, 2, '.', ''),
+            'productinfo' => $productinfo,
+            'firstname' => $request->buyer_name,
+            'email' => $request->buyer_email,
+            'phone' => $request->buyer_phone,
+            'surl' => config('app.payment_success_url'),
+            'furl' => config('app.payment_failure_url'),
+            'udf1' => (string) $course->id,
+            'udf2' => $payment->txnid,
+            'udf3' => '',
+            'udf4' => '',
+            'udf5' => '',
+            'udf6' => '',
+            'udf7' => '',
+            'udf8' => '',
+            'udf9' => '',
+            'udf10' => '',
+        ];
+
+        return $this->easebuzz->initiatePayment($params);
+    }
+
+    /**
+     * @return array{success: bool, redirect_url?: string, error?: string}
+     */
+    private function initiatePayGlocal(Payment $payment, Course $course, PaymentInitiateRequest $request, float $amountInr): array
+    {
+        $result = $this->payglocal->initiatePayment([
+            'txnid' => $payment->txnid,
+            'amount' => number_format($amountInr, 2, '.', ''),
+            'currency' => 'INR',
+            'firstname' => $request->buyer_name,
+            'email' => $request->buyer_email,
+            'callback_url' => config('app.payglocal_callback_url'),
         ]);
 
-        $txnid = $request->input('txnid');
-        $status = $request->input('status');
+        if ($result['success'] && !empty($result['gid'])) {
+            $payment->update([
+                'payment_id' => $result['gid'],
+                'gateway_response' => array_merge($payment->gateway_response ?? [], [
+                    'gid' => $result['gid'],
+                    'status_url' => $result['status_url'] ?? null,
+                ]),
+            ]);
+        }
+
+        return $result;
+    }
+
+    public function success(Request $request): RedirectResponse
+    {
+        return $this->handleGatewayCallback(PaymentGatewayConfig::GATEWAY_EASEBUZZ, $request, asRedirect: true);
+    }
+
+    public function failure(Request $request): RedirectResponse
+    {
+        return $this->handleGatewayFailure(PaymentGatewayConfig::GATEWAY_EASEBUZZ, $request);
+    }
+
+    public function webhook(Request $request): JsonResponse
+    {
+        return $this->handleGatewayCallback(PaymentGatewayConfig::GATEWAY_EASEBUZZ, $request, asRedirect: false);
+    }
+
+    public function payglocalSuccess(Request $request): RedirectResponse
+    {
+        return $this->handleGatewayCallback(PaymentGatewayConfig::GATEWAY_PAYGLOCAL, $request, asRedirect: true);
+    }
+
+    public function payglocalFailure(Request $request): RedirectResponse
+    {
+        return $this->handleGatewayFailure(PaymentGatewayConfig::GATEWAY_PAYGLOCAL, $request);
+    }
+
+    public function payglocalWebhook(Request $request): JsonResponse
+    {
+        return $this->handleGatewayCallback(PaymentGatewayConfig::GATEWAY_PAYGLOCAL, $request, asRedirect: false);
+    }
+
+    /**
+     * Resolve a gateway name to its service. Adding gateway #3: implement
+     * PaymentGatewayContract, inject it in the constructor, add one case here.
+     * Nothing below this method needs to change.
+     */
+    private function resolveGatewayService(string $gatewayName): PaymentGatewayContract
+    {
+        return match ($gatewayName) {
+            PaymentGatewayConfig::GATEWAY_PAYGLOCAL => $this->payglocal,
+            PaymentGatewayConfig::GATEWAY_EASEBUZZ => $this->easebuzz,
+            default => abort(503, 'Unsupported payment gateway.'),
+        };
+    }
+
+    /**
+     * The single verification pipeline every gateway's success/webhook callback runs
+     * through: atomic race-condition claim, authenticity check, authoritative
+     * server-to-server re-verification (never trust callback data alone),
+     * environment-aware blocking, amount-tamper check, then fulfillment. Gateway
+     * differences are confined to PaymentGatewayContract implementations — this
+     * method itself never needs to change when a gateway is added.
+     */
+    private function handleGatewayCallback(string $gatewayName, Request $request, bool $asRedirect): RedirectResponse|JsonResponse
+    {
+        $service = $this->resolveGatewayService($gatewayName);
+        $label = strtoupper($gatewayName);
+
+        Log::info("=== PAYMENT CALLBACK RECEIVED ($label) ===", ['ip' => $request->ip()]);
+
+        $parsed = $service->parseCallback($request);
+        $txnid = $parsed['txnid'];
 
         if (!$txnid) {
-            Log::error('PAYMENT SUCCESS: Missing txnid');
-            return $this->redirectToFrontend('failed', null, 'Missing transaction ID');
+            Log::error("PAYMENT CALLBACK ($label): Missing txnid");
+            return $this->respond($asRedirect, 'failed', null, 'Missing transaction ID', 400, 'Invalid request');
         }
 
         $payment = Payment::where('txnid', $txnid)->first();
 
         if (!$payment) {
-            Log::error('PAYMENT SUCCESS: Payment not found', ['txnid' => $txnid]);
-            return $this->redirectToFrontend('failed', $txnid, 'Transaction not found');
+            Log::error("PAYMENT CALLBACK ($label): Payment not found", ['txnid' => $txnid]);
+            return $this->respond($asRedirect, 'failed', $txnid, 'Transaction not found', 404, 'Transaction not found');
         }
 
         // Atomic check/update to prevent race condition. FAILED/EXPIRED are reclaimable
-        // too — hash verification still runs fresh below, so a transient earlier failure
-        // (e.g. a flaky Transaction API call) doesn't permanently strand a real payment.
+        // too — authenticity/verification still runs fresh below, so a transient earlier
+        // failure (e.g. a flaky status-check API call) doesn't permanently strand a real
+        // payment. Authenticity is checked *after* this claim, mirroring each gateway's
+        // original order, so the claim itself never depends on trusting the callback yet.
         $updated = Payment::where('txnid', $txnid)
             ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_FAILED, Payment::STATUS_EXPIRED])
             ->update([
                 'status' => Payment::STATUS_PROCESSING,
-                'payment_id' => $request->input('easebuzz_id', $request->input('payment_id')),
+                'payment_id' => $parsed['payment_id'],
                 'gateway_response' => array_merge(
                     $payment->gateway_response ?? [],
                     [
-                        'callback_data' => $request->all(),
+                        'callback_data' => $parsed['data'],
                         'callback_received_at' => now()->toIso8601String(),
                     ]
                 ),
             ]);
 
         if (!$updated) {
-            // Another request (webhook or a concurrent surl hit) is already handling this
-            // txnid. Rather than trusting a possibly mid-flight snapshot, wait briefly for
-            // it to reach a terminal state so we don't tell a paying customer it failed.
-            Log::info('PAYMENT SUCCESS: Already processed (race condition handled)', ['txnid' => $txnid]);
+            // Another request (webhook or a concurrent redirect hit) is already handling
+            // this txnid. Rather than trusting a possibly mid-flight snapshot, wait briefly
+            // for it to reach a terminal state so we don't tell a paying customer it failed.
+            Log::info("PAYMENT CALLBACK ($label): Already processed (race condition handled)", ['txnid' => $txnid]);
             $currentStatus = $this->awaitTerminalStatus($payment);
             $redirectStatus = $currentStatus === Payment::STATUS_PAID ? 'success' : 'failed';
-            return $this->redirectToFrontend($redirectStatus, $txnid);
+            return $asRedirect
+                ? $this->redirectToFrontend($redirectStatus, $txnid)
+                : response()->json(['status' => 'ok', 'message' => 'Already processed']);
         }
 
         // Reload — the atomic claim above wrote callback_data into gateway_response
         // via a raw query, which this in-memory model instance doesn't have yet.
         $payment->refresh();
 
-        // Verify response hash
-        $hashValid = $this->easebuzz->verifyResponseHash($request->all());
-
-        if (!$hashValid) {
-            Log::warning('PAYMENT SUCCESS: Hash verification failed', ['txnid' => $txnid]);
+        if (!$service->verifyCallbackAuthenticity($parsed['data'], $request)) {
+            Log::warning("PAYMENT CALLBACK ($label): Authenticity verification failed", ['txnid' => $txnid]);
 
             Payment::where('txnid', $txnid)->update([
                 'status' => Payment::STATUS_FAILED,
-                'gateway_response' => array_merge(
-                    $payment->gateway_response ?? [],
-                    ['error' => 'Hash verification failed']
-                ),
+                'gateway_response' => array_merge($payment->gateway_response ?? [], ['error' => 'Callback authenticity verification failed']),
             ]);
 
-            return $this->redirectToFrontend('failed', $txnid, 'Security verification failed');
+            return $this->respond($asRedirect, 'failed', $txnid, 'Security verification failed', 400, 'Security verification failed');
         }
 
-        // Verify transaction with Easebuzz API
-        $verification = $this->easebuzz->verifyTransaction($txnid);
+        $identifier = $parsed['identifier'] ?: $payment->payment_id ?: $txnid;
 
-        $transactionStatus = $verification['data']['txn_status'] ?? $verification['data']['status'] ?? null;
-        $isTransactionSuccess = ($verification['status'] === 1)
-            && in_array(strtolower($transactionStatus ?? ''), ['success', 'completed']);
+        // Never trust the callback's own claimed status — always re-verify server-to-server.
+        $verification = $service->verifyTransaction($identifier);
 
-        Log::info('PAYMENT SUCCESS: Transaction verification', [
+        Log::info("PAYMENT CALLBACK ($label): Transaction verification", [
             'txnid' => $txnid,
-            'verification_status' => $verification['status'],
-            'transaction_status' => $transactionStatus,
-            'is_success' => $isTransactionSuccess,
+            'identifier' => $identifier,
+            'is_success' => $verification['success'],
         ]);
 
         // Environment-aware transaction verification
         // In production: hard-block if verification fails (real money involved)
-        // In test: log a warning but allow (test sandbox Transaction API is unreliable)
-        if (!$isTransactionSuccess) {
-            if ($this->easebuzz->isProduction()) {
-                Log::warning('PAYMENT SUCCESS: Transaction verification failed — blocking enrollment', [
+        // In test: log a warning but allow (sandbox status APIs are often unreliable)
+        if (!$verification['success']) {
+            if ($service->isProduction()) {
+                Log::warning("PAYMENT CALLBACK ($label): Transaction verification failed — blocking enrollment", [
                     'txnid' => $txnid,
                     'verification' => $verification,
                 ]);
@@ -310,67 +413,78 @@ class PaymentController extends Controller
                     'status' => Payment::STATUS_FAILED,
                     'gateway_response' => array_merge(
                         $payment->gateway_response ?? [],
-                        ['error' => 'Transaction verification failed with Easebuzz']
+                        ['error' => "Transaction verification failed with $gatewayName"]
                     ),
                 ]);
 
-                return $this->redirectToFrontend('failed', $txnid, 'Transaction could not be verified. Please contact support.');
+                return $this->respond($asRedirect, 'failed', $txnid, 'Transaction could not be verified. Please contact support.', 400, 'Transaction verification failed');
             }
 
-            Log::warning('PAYMENT SUCCESS: Transaction verification failed in TEST mode — allowing enrollment', [
+            Log::warning("PAYMENT CALLBACK ($label): Transaction verification failed in TEST mode — allowing enrollment", [
                 'txnid' => $txnid,
                 'verification' => $verification,
             ]);
         }
 
-        // Amount validation — prevent tampering
-        $easebuzzAmount = $request->input('amount');
-        $ourAmount = number_format((float) $payment->amount, 2, '.', '');
+        // Amount validation — prevent tampering. Skipped only if the gateway's
+        // verification response didn't surface an amount at all.
+        if ($verification['amount'] !== null) {
+            $gatewayAmount = $verification['amount'];
+            $ourAmount = number_format((float) $payment->amount, 2, '.', '');
 
-        if (abs((float) $easebuzzAmount - (float) $ourAmount) > 0.01) {
-            Log::warning('PAYMENT SUCCESS: Amount mismatch', [
-                'txnid' => $txnid,
-                'easebuzz_amount' => $easebuzzAmount,
-                'our_amount' => $ourAmount,
-            ]);
+            if (abs((float) $gatewayAmount - (float) $ourAmount) > 0.01) {
+                Log::warning("PAYMENT CALLBACK ($label): Amount mismatch", [
+                    'txnid' => $txnid,
+                    'gateway_amount' => $gatewayAmount,
+                    'our_amount' => $ourAmount,
+                ]);
 
-            Payment::where('txnid', $txnid)->update([
-                'status' => Payment::STATUS_FAILED,
-                'gateway_response' => array_merge(
-                    $payment->gateway_response ?? [],
-                    ['error' => 'Amount mismatch: expected ' . $ourAmount . ' but got ' . $easebuzzAmount]
-                ),
-            ]);
+                Payment::where('txnid', $txnid)->update([
+                    'status' => Payment::STATUS_FAILED,
+                    'gateway_response' => array_merge(
+                        $payment->gateway_response ?? [],
+                        ['error' => 'Amount mismatch: expected ' . $ourAmount . ' but got ' . $gatewayAmount]
+                    ),
+                ]);
 
-            return $this->redirectToFrontend('failed', $txnid, 'Payment amount validation failed. Please contact support.');
+                return $this->respond($asRedirect, 'failed', $txnid, 'Payment amount validation failed. Please contact support.', 400, 'Amount mismatch');
+            }
         }
 
-        // Process the successful payment
         try {
             $this->fulfillment->fulfill($payment);
 
-            Log::info('=== PAYMENT SUCCESS COMPLETED ===', ['txnid' => $txnid]);
+            Log::info("=== PAYMENT CALLBACK COMPLETED ($label) ===", ['txnid' => $txnid]);
 
-            return $this->redirectToFrontend('success', $txnid);
+            return $asRedirect
+                ? $this->redirectToFrontend('success', $txnid)
+                : response()->json(['status' => 'ok']);
 
         } catch (\Exception $e) {
-            Log::error('PAYMENT SUCCESS: Fulfillment error', [
+            Log::error("PAYMENT CALLBACK ($label): Fulfillment error", [
                 'txnid' => $txnid,
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->redirectToFrontend('failed', $txnid, 'An error occurred while processing your payment. Please contact support.');
+            return $this->respond($asRedirect, 'failed', $txnid, 'An error occurred while processing your payment. Please contact support.', 500, 'Internal server error');
         }
     }
 
-    public function failure(Request $request): RedirectResponse
+    /**
+     * Marks a pending payment failed based on an explicit failure callback. Works for any
+     * gateway since it only needs a txnid, which every gateway sends the same way on failure
+     * (either as `txnid` or, for PayGlocal, `merchantTxnId`).
+     */
+    private function handleGatewayFailure(string $gatewayName, Request $request): RedirectResponse
     {
-        Log::info('=== PAYMENT FAILURE CALLBACK RECEIVED ===', [
+        $label = strtoupper($gatewayName);
+
+        Log::info("=== PAYMENT FAILURE CALLBACK RECEIVED ($label) ===", [
             'all_params' => $this->redactForLogging($request->all()),
             'ip' => $request->ip(),
         ]);
 
-        $txnid = $request->input('txnid');
+        $txnid = $request->input('txnid', $request->input('merchantTxnId'));
 
         if ($txnid) {
             $payment = Payment::where('txnid', $txnid)->first();
@@ -387,7 +501,7 @@ class PaymentController extends Controller
                     ),
                 ]);
 
-                Log::info('PAYMENT FAILURE: Payment marked as failed', [
+                Log::info("PAYMENT FAILURE ($label): Payment marked as failed", [
                     'payment_id' => $payment->id,
                     'txnid' => $txnid,
                 ]);
@@ -397,125 +511,15 @@ class PaymentController extends Controller
         return $this->redirectToFrontend('failed', $txnid);
     }
 
-    public function webhook(Request $request)
+    /**
+     * Return either a frontend redirect or a JSON response depending on which
+     * transport this callback came in on (browser redirect vs. server webhook).
+     */
+    private function respond(bool $asRedirect, string $redirectStatus, ?string $txnid, string $redirectMessage, int $jsonStatus, string $jsonError): RedirectResponse|JsonResponse
     {
-        Log::info('=== EASEBUZZ WEBHOOK RECEIVED ===', [
-            'all_params' => $this->redactForLogging($request->all()),
-            'ip' => $request->ip(),
-        ]);
-
-        $txnid = $request->input('txnid');
-        $status = $request->input('status');
-
-        if (!$txnid || !$status) {
-            return response()->json(['error' => 'Invalid request'], 400);
-        }
-
-        $payment = Payment::where('txnid', $txnid)->first();
-
-        if (!$payment) {
-            return response()->json(['error' => 'Transaction not found'], 404);
-        }
-
-        // Atomic check/update to prevent race condition. FAILED/EXPIRED are reclaimable
-        // too — hash verification still runs fresh below, so a transient earlier failure
-        // doesn't permanently strand a real payment.
-        $updated = Payment::where('txnid', $txnid)
-            ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_FAILED, Payment::STATUS_EXPIRED])
-            ->update([
-                'status' => Payment::STATUS_PROCESSING,
-                'gateway_response' => array_merge(
-                    $payment->gateway_response ?? [],
-                    [
-                        'webhook_data' => $request->all(),
-                        'webhook_received_at' => now()->toIso8601String(),
-                    ]
-                ),
-            ]);
-
-        if (!$updated) {
-            Log::info('WEBHOOK: Already processed (race condition handled)', ['txnid' => $txnid]);
-            return response()->json(['status' => 'ok', 'message' => 'Already processed']);
-        }
-
-        // Reload — the atomic claim above wrote webhook_data into gateway_response
-        // via a raw query, which this in-memory model instance doesn't have yet.
-        $payment->refresh();
-
-        // Verify hash
-        $hashValid = $this->easebuzz->verifyResponseHash($request->all());
-
-        if (!$hashValid) {
-            Log::warning('WEBHOOK: Hash mismatch', ['txnid' => $txnid]);
-            Payment::where('txnid', $txnid)->update(['status' => Payment::STATUS_FAILED]);
-            return response()->json(['error' => 'Hash mismatch'], 400);
-        }
-
-        $isSuccess = strtolower($status) === 'success';
-
-        if (!$isSuccess) {
-            Payment::where('txnid', $txnid)->update(['status' => Payment::STATUS_FAILED]);
-            return response()->json(['status' => 'ok']);
-        }
-
-        // Verify transaction with Easebuzz API (server-to-server)
-        $verification = $this->easebuzz->verifyTransaction($txnid);
-
-        $transactionStatus = $verification['data']['txn_status'] ?? $verification['data']['status'] ?? null;
-        $isTransactionSuccess = ($verification['status'] === 1)
-            && in_array(strtolower($transactionStatus ?? ''), ['success', 'completed']);
-
-        // Environment-aware transaction verification
-        // In production: hard-block if verification fails (real money involved)
-        // In test: log a warning but allow (test sandbox Transaction API is unreliable)
-        if (!$isTransactionSuccess) {
-            if ($this->easebuzz->isProduction()) {
-                Log::warning('WEBHOOK: Transaction verification failed — blocking enrollment', [
-                    'txnid' => $txnid,
-                    'verification' => $verification,
-                ]);
-
-                Payment::where('txnid', $txnid)->update([
-                    'status' => Payment::STATUS_FAILED,
-                    'gateway_response' => array_merge(
-                        $payment->gateway_response ?? [],
-                        ['error' => 'Transaction verification failed with Easebuzz']
-                    ),
-                ]);
-
-                return response()->json(['error' => 'Transaction verification failed'], 400);
-            }
-
-            Log::warning('WEBHOOK: Transaction verification failed in TEST mode — allowing enrollment', [
-                'txnid' => $txnid,
-                'verification' => $verification,
-            ]);
-        }
-
-        // Amount validation
-        $easebuzzAmount = $request->input('amount');
-        $ourAmount = number_format((float) $payment->amount, 2, '.', '');
-
-        if (abs((float) $easebuzzAmount - (float) $ourAmount) > 0.01) {
-            Log::warning('WEBHOOK: Amount mismatch', [
-                'txnid' => $txnid,
-                'easebuzz_amount' => $easebuzzAmount,
-                'our_amount' => $ourAmount,
-            ]);
-
-            Payment::where('txnid', $txnid)->update(['status' => Payment::STATUS_FAILED]);
-            return response()->json(['error' => 'Amount mismatch'], 400);
-        }
-
-        try {
-            $this->fulfillment->fulfill($payment);
-
-            return response()->json(['status' => 'ok']);
-
-        } catch (\Exception $e) {
-            Log::error('WEBHOOK: Fulfillment error', ['txnid' => $txnid, 'error' => $e->getMessage()]);
-            return response()->json(['error' => 'Internal server error'], 500);
-        }
+        return $asRedirect
+            ? $this->redirectToFrontend($redirectStatus, $txnid, $redirectMessage)
+            : response()->json(['error' => $jsonError], $jsonStatus);
     }
 
     private function redirectToFrontend(string $status, ?string $txnid = null, ?string $message = null): RedirectResponse

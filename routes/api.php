@@ -16,3 +16,8 @@ Route::post('/payment/initiate', [PaymentController::class, 'initiate'])->middle
 Route::post('/payment/success', [PaymentController::class, 'success'])->name('payment.success')->middleware('throttle:20,1');
 Route::post('/payment/failure', [PaymentController::class, 'failure'])->name('payment.failure')->middleware('throttle:20,1');
 Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook')->middleware('throttle:30,1');
+
+// PayGlocal callback routes
+Route::post('/payment/payglocal/success', [PaymentController::class, 'payglocalSuccess'])->name('payment.payglocal.success')->middleware('throttle:20,1');
+Route::post('/payment/payglocal/failure', [PaymentController::class, 'payglocalFailure'])->name('payment.payglocal.failure')->middleware('throttle:20,1');
+Route::post('/payment/payglocal/webhook', [PaymentController::class, 'payglocalWebhook'])->name('payment.payglocal.webhook')->middleware('throttle:30,1');

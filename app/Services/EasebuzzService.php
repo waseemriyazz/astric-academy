@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Contracts\PaymentGatewayContract;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class EasebuzzService
+class EasebuzzService implements PaymentGatewayContract
 {
     private string $merchantKey;
     private string $salt;
@@ -121,10 +123,11 @@ class EasebuzzService
      *
      * Hash sequence: key|txnid|salt
      *
-     * @return array{status: int, data: mixed}
+     * @return array{success: bool, amount: ?string, raw: mixed}
      */
-    public function verifyTransaction(string $txnid): array
+    public function verifyTransaction(string $identifier): array
     {
+        $txnid = $identifier;
         $hashString = $this->merchantKey . '|' . $txnid . '|' . $this->salt;
         $hash = strtolower(hash('sha512', $hashString));
 
@@ -162,14 +165,14 @@ class EasebuzzService
                     'txnid' => $txnid,
                     'error' => $error,
                 ]);
-                return ['status' => 0, 'data' => 'cURL error: ' . $error];
+                return ['success' => false, 'amount' => null, 'raw' => 'cURL error: ' . $error];
             }
 
             curl_close($ch);
 
             if ($result === false || trim($result) === '') {
                 Log::error('Easebuzz: Empty response from transaction API', ['txnid' => $txnid]);
-                return ['status' => 0, 'data' => 'Empty response from Easebuzz'];
+                return ['success' => false, 'amount' => null, 'raw' => 'Empty response from Easebuzz'];
             }
 
             $decoded = json_decode($result, true);
@@ -179,19 +182,26 @@ class EasebuzzService
                     'txnid' => $txnid,
                     'response' => substr($result, 0, 500),
                 ]);
-                return ['status' => 0, 'data' => 'Invalid JSON response'];
+                return ['success' => false, 'amount' => null, 'raw' => 'Invalid JSON response'];
             }
+
+            $data = $decoded['data'] ?? $decoded;
+            $transactionStatus = $data['txn_status'] ?? $data['status'] ?? null;
+            $isSuccess = ((int) ($decoded['status'] ?? 0) === 1)
+                && in_array(strtolower((string) $transactionStatus), ['success', 'completed'], true);
 
             Log::info('Easebuzz: Transaction verification response', [
                 'txnid' => $txnid,
                 'http_code' => $httpCode,
                 'response_status' => $decoded['status'] ?? 'unknown',
-                'transaction_status' => $decoded['data']['txn_status'] ?? $decoded['data']['status'] ?? 'unknown',
+                'transaction_status' => $transactionStatus ?? 'unknown',
+                'is_success' => $isSuccess,
             ]);
 
             return [
-                'status' => (int) ($decoded['status'] ?? 0),
-                'data' => $decoded['data'] ?? $decoded,
+                'success' => $isSuccess,
+                'amount' => $data['amount'] ?? null,
+                'raw' => $data,
             ];
 
         } catch (\Exception $e) {
@@ -199,8 +209,29 @@ class EasebuzzService
                 'txnid' => $txnid,
                 'error' => $e->getMessage(),
             ]);
-            return ['status' => 0, 'data' => 'Exception: ' . $e->getMessage()];
+            return ['success' => false, 'amount' => null, 'raw' => 'Exception: ' . $e->getMessage()];
         }
+    }
+
+    /**
+     * @return array{txnid: ?string, identifier: ?string, payment_id: ?string, data: array}
+     */
+    public function parseCallback(Request $request): array
+    {
+        $data = $request->all();
+        $txnid = $data['txnid'] ?? null;
+
+        return [
+            'txnid' => $txnid,
+            'identifier' => $txnid,
+            'payment_id' => $data['easebuzz_id'] ?? $data['payment_id'] ?? null,
+            'data' => $data,
+        ];
+    }
+
+    public function verifyCallbackAuthenticity(array $data, Request $request): bool
+    {
+        return $this->verifyResponseHash($data);
     }
 
     /**

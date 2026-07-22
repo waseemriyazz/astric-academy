@@ -140,13 +140,14 @@ return [
     | Payment Callback URLs
     |--------------------------------------------------------------------------
     |
-    | These URLs are used for Easebuzz success/failure callbacks.
+    | These URLs are used for Easebuzz/PayGlocal success/failure callbacks.
     | Must be publicly accessible in production.
     |
     */
 
     'payment_success_url' => env('PAYMENT_SUCCESS_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/success'),
     'payment_failure_url' => env('PAYMENT_FAILURE_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/failure'),
+    'payglocal_callback_url' => env('PAYGLOCAL_CALLBACK_URL') ?: (env('BACKEND_URL', 'http://localhost:8000') . '/api/payment/payglocal/success'),
 
     /*
     |--------------------------------------------------------------------------
