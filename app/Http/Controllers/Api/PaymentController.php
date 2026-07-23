@@ -367,10 +367,16 @@ class PaymentController extends Controller
             // for it to reach a terminal state so we don't tell a paying customer it failed.
             Log::info("PAYMENT CALLBACK ($label): Already processed (race condition handled)", ['txnid' => $txnid]);
             $currentStatus = $this->awaitTerminalStatus($payment);
-            $redirectStatus = $currentStatus === Payment::STATUS_PAID ? 'success' : 'failed';
+            $redirectStatus = match ($currentStatus) {
+                Payment::STATUS_PAID => 'success',
+                // Still processing after the wait — the concurrent request left it
+                // pending (e.g. PayGlocal INPROGRESS), not failed.
+                Payment::STATUS_PROCESSING => 'pending',
+                default => 'failed',
+            };
             return $asRedirect
                 ? $this->redirectToFrontend($redirectStatus, $txnid)
-                : response()->json(['status' => 'ok', 'message' => 'Already processed']);
+                : response()->json(['status' => $redirectStatus === 'pending' ? 'pending' : 'ok', 'message' => 'Already processed']);
         }
 
         // Reload — the atomic claim above wrote callback_data into gateway_response
@@ -388,7 +394,13 @@ class PaymentController extends Controller
             return $this->respond($asRedirect, 'failed', $txnid, 'Security verification failed', 400, 'Security verification failed');
         }
 
-        $identifier = $parsed['identifier'] ?: $payment->payment_id ?: $txnid;
+        // PayGlocal's verification identifier is the full statusUrl stored at initiate time
+        // (it carries a token PayGlocal itself signs, which can't be rebuilt from a bare gid).
+        // Other gateways fall through to their own identifier/payment_id/txnid chain unaffected.
+        $identifier = $payment->gateway_response['status_url']
+            ?? $parsed['identifier']
+            ?: $payment->payment_id
+            ?: $txnid;
 
         // Never trust the callback's own claimed status — always re-verify server-to-server.
         $verification = $service->verifyTransaction($identifier);
@@ -397,7 +409,30 @@ class PaymentController extends Controller
             'txnid' => $txnid,
             'identifier' => $identifier,
             'is_success' => $verification['success'],
+            'is_pending' => $verification['pending'],
         ]);
+
+        // A genuinely in-between state (e.g. PayGlocal's INPROGRESS, still settling
+        // asynchronously) is not a failure — don't fail it, don't fulfill it either.
+        // Leave the payment in 'processing' (already set by the atomic claim above) for
+        // later reconciliation via webhook or the payments:expire-stale sweep.
+        if ($verification['pending']) {
+            Log::info("PAYMENT CALLBACK ($label): Transaction still pending — leaving for later reconciliation", [
+                'txnid' => $txnid,
+                'verification' => $verification,
+            ]);
+
+            Payment::where('txnid', $txnid)->update([
+                'gateway_response' => array_merge(
+                    $payment->gateway_response ?? [],
+                    ['pending_checked_at' => now()->toIso8601String()]
+                ),
+            ]);
+
+            return $asRedirect
+                ? $this->redirectToFrontend('pending', $txnid, 'Your payment is still being confirmed. You will receive an email once it completes.')
+                : response()->json(['status' => 'pending']);
+        }
 
         // Environment-aware transaction verification
         // In production: hard-block if verification fails (real money involved)
@@ -532,7 +567,9 @@ class PaymentController extends Controller
             $params['txnid'] = $txnid;
         }
         if ($message) {
-            $params['message'] = urlencode($message);
+            // http_build_query() already URL-encodes every value — encoding $message
+            // here too would double-encode it (e.g. "a b" -> "a+b" -> "a%2Bb").
+            $params['message'] = $message;
         }
 
         if (!empty($params)) {
