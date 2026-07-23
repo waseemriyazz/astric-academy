@@ -28,7 +28,7 @@ class TestPayGlocalConnection extends Command
         $this->line('Private key:  ' . $this->describeSecret($config->credential('private_key')));
         $this->line('Public key:   ' . $this->describeSecret($config->credential('public_key')));
         $this->line('Environment:  ' . ($config->is_production ? 'PRODUCTION' : 'SANDBOX / UAT'));
-        $this->line('Live gateway: ' . ($config->is_active ? 'YES — routing real checkouts' : 'no (Easebuzz is live; this test is isolated and safe)'));
+        $this->line('Live gateway: ' . ($config->is_active ? 'YES — routing real checkouts' : 'no — this test is isolated and safe'));
         $this->newLine();
 
         $service = app(PayGlocalService::class);
