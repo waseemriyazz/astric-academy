@@ -7,9 +7,32 @@ use App\Models\PaymentGatewayConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Encryption\Algorithm\ContentEncryption\A128CBCHS256;
+use Jose\Component\Encryption\Algorithm\KeyEncryption\RSAOAEP256;
+use Jose\Component\Encryption\JWEBuilder;
+use Jose\Component\Encryption\Serializer\CompactSerializer as JweCompactSerializer;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\RS256;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer as JwsCompactSerializer;
 use phpseclib3\Crypt\PublicKeyLoader;
-use phpseclib3\Crypt\RSA;
+use phpseclib3\Crypt\RSA as PhpseclibRSA;
 
+/**
+ * PayGlocal PayCollect requires two stacked JOSE operations, per PayGlocal's official
+ * PHP SDK (github.com/PayGlocal-Technologies/payglocal-php-sdk):
+ *
+ *  1. The payment payload is encrypted into a JWE using PayGlocal's PUBLIC key
+ *     (RSA-OAEP-256 key wrapping + A128CBC-HS256 content encryption).
+ *  2. That JWE's SHA-256 digest is wrapped in a small JSON payload and signed (JWS,
+ *     RS256) with OUR private key. The JWE token is the raw request body; the JWS is
+ *     sent separately in the x-gl-token-external header.
+ *
+ * Earlier versions of this service only did step 2, directly over the plaintext body —
+ * every request was rejected with a generic 401 because PayGlocal was never receiving
+ * an encrypted body at all.
+ */
 class PayGlocalService implements PaymentGatewayContract
 {
     private ?string $merchantId;
@@ -24,10 +47,8 @@ class PayGlocalService implements PaymentGatewayContract
         $config = PaymentGatewayConfig::where('gateway', PaymentGatewayConfig::GATEWAY_PAYGLOCAL)->first();
 
         $this->merchantId = $config?->credential('merchant_id');
-        // Private KID identifies our signing keypair to PayGlocal — goes in x-gl-kid and the
-        // JWS 'kid' claim on every outgoing request. Public KID is PayGlocal's own reference
-        // for their public key (used to verify their callback signatures); not currently sent
-        // on any of our requests, kept here for completeness/record-keeping alongside it.
+        // Private KID/key are ours — sign the outer JWS. Public KID/key belong to PayGlocal
+        // and encrypt the inner JWE; both pairs are required for every outgoing request.
         $this->privateKid = $config?->credential('private_kid');
         $this->publicKid = $config?->credential('public_kid');
         $this->privateKey = $config?->credential('private_key');
@@ -45,7 +66,11 @@ class PayGlocalService implements PaymentGatewayContract
 
     public function isConfigured(): bool
     {
-        return !empty($this->merchantId) && !empty($this->privateKid) && !empty($this->privateKey);
+        return !empty($this->merchantId)
+            && !empty($this->privateKid)
+            && !empty($this->privateKey)
+            && !empty($this->publicKid)
+            && !empty($this->publicKey);
     }
 
     public function isProduction(): bool
@@ -61,32 +86,79 @@ class PayGlocalService implements PaymentGatewayContract
     }
 
     /**
-     * Build the digest-based JWS token PayGlocal expects in x-gl-token-external.
-     * The payload segment carries a SHA-256 digest of the request body, not the body itself.
+     * Encrypt $payload into a JWE compact token using PayGlocal's public key.
      */
-    private function buildJwsToken(array $body): string
+    private function buildJwe(array $payload): string
     {
+        $algorithmManager = new AlgorithmManager([
+            new RSAOAEP256(),
+            new A128CBCHS256(),
+        ]);
+
+        $jweBuilder = new JWEBuilder($algorithmManager);
+
+        $encryptionKey = JWKFactory::createFromKey($this->publicKey, null, [
+            'kid' => $this->publicKid,
+            'use' => 'enc',
+            'alg' => 'RSA-OAEP-256',
+        ]);
+
         $header = [
-            'alg' => 'RS256',
-            'kid' => $this->privateKid,
-            'iss' => $this->merchantId,
-            'x-gl-enc' => 'false',
-            'is-digested' => 'true',
+            'issued-by' => $this->merchantId,
+            'enc' => 'A128CBC-HS256',
+            'exp' => 30000,
+            'iat' => (string) round(microtime(true) * 1000),
+            'alg' => 'RSA-OAEP-256',
+            'kid' => $this->publicKid,
         ];
 
-        $digest = hash('sha256', json_encode($body), true);
+        $jwe = $jweBuilder
+            ->create()
+            ->withPayload(json_encode($payload))
+            ->withSharedProtectedHeader($header)
+            ->addRecipient($encryptionKey)
+            ->build();
 
-        $headerEncoded = $this->base64UrlEncode(json_encode($header));
-        $payloadEncoded = $this->base64UrlEncode($digest);
-        $signingInput = $headerEncoded . '.' . $payloadEncoded;
+        return (new JweCompactSerializer())->serialize($jwe, 0);
+    }
 
-        $rsa = PublicKeyLoader::load($this->privateKey)
-            ->withPadding(RSA::SIGNATURE_PKCS1)
-            ->withHash('sha256');
+    /**
+     * Sign a SHA-256 digest of $jweToken with our private key. The JWS payload is a small
+     * JSON envelope ({digest, digestAlgorithm, exp, iat}), not the digest bytes directly.
+     */
+    private function buildJws(string $jweToken): string
+    {
+        $algorithmManager = new AlgorithmManager([new RS256()]);
+        $jwsBuilder = new JWSBuilder($algorithmManager);
 
-        $signature = $rsa->sign($signingInput);
+        $signingKey = JWKFactory::createFromKey($this->privateKey, null, [
+            'kid' => $this->privateKid,
+            'use' => 'sig',
+        ]);
 
-        return $signingInput . '.' . $this->base64UrlEncode($signature);
+        $header = [
+            'issued-by' => $this->merchantId,
+            'is-digested' => 'true',
+            'alg' => 'RS256',
+            'x-gl-enc' => 'true',
+            'x-gl-merchantId' => $this->merchantId,
+            'kid' => $this->privateKid,
+        ];
+
+        $payload = json_encode([
+            'digest' => base64_encode(hash('sha256', $jweToken, true)),
+            'digestAlgorithm' => 'SHA-256',
+            'exp' => 300000,
+            'iat' => (string) round(microtime(true) * 1000),
+        ]);
+
+        $jws = $jwsBuilder
+            ->create()
+            ->withPayload($payload)
+            ->addSignature($signingKey, $header)
+            ->build();
+
+        return (new JwsCompactSerializer())->serialize($jws, 0);
     }
 
     /**
@@ -96,25 +168,34 @@ class PayGlocalService implements PaymentGatewayContract
      */
     public function initiatePayment(array $params): array
     {
+        $merchantUniqueId = substr(bin2hex(random_bytes(8)), 0, 16);
+
         $body = [
             'merchantTxnId' => $params['txnid'],
+            'merchantUniqueId' => $merchantUniqueId,
             'paymentData' => [
                 'totalAmount' => $params['amount'],
                 'txnCurrency' => $params['currency'] ?? 'INR',
                 'billingData' => [
                     'firstName' => $params['firstname'],
                     'lastName' => $params['lastname'] ?? '.',
+                    'addressStreet1' => $params['address_street1'] ?? 'NA',
+                    'addressStreet2' => $params['address_street2'] ?? 'NA',
+                    'addressCity' => $params['address_city'] ?? 'NA',
+                    'addressState' => $params['address_state'] ?? 'NA',
+                    'addressPostalCode' => $params['address_postal_code'] ?? '000000',
+                    'addressCountry' => 'IN',
                     'emailId' => $params['email'],
-                    'addressCountry' => 'IND',
                 ],
             ],
             'merchantCallbackURL' => $params['callback_url'],
         ];
 
         try {
-            $token = $this->buildJwsToken($body);
+            $jweToken = $this->buildJwe($body);
+            $jwsToken = $this->buildJws($jweToken);
         } catch (\Throwable $e) {
-            Log::error('PayGlocal: Failed to build JWS token for initiate', [
+            Log::error('PayGlocal: Failed to build JWE/JWS for initiate', [
                 'txnid' => $params['txnid'] ?? 'N/A',
                 'error' => $e->getMessage(),
             ]);
@@ -123,27 +204,15 @@ class PayGlocalService implements PaymentGatewayContract
 
         $url = $this->getBaseUrl() . '/gl/v1/payments/initiate/paycollect';
 
-        // Full diagnostic snapshot of exactly what's being sent, minus the private key/raw
-        // signature — everything here is safe to hand to PayGlocal support for a definitive
-        // server-side reason behind a 401, instead of guessing further client-side.
-        $tokenParts = explode('.', $token);
-        $decodedHeader = json_decode($this->base64UrlDecode($tokenParts[0] ?? ''), true);
-
         Log::info('PayGlocal: Outgoing request diagnostics', [
             'txnid' => $params['txnid'],
+            'merchant_unique_id' => $merchantUniqueId,
             'url' => $url,
-            'jws_header_claims' => $decodedHeader,
-            'request_headers' => [
-                'x-gl-merchantid' => $this->merchantId,
-                'x-gl-kid' => $this->privateKid,
-                'Content-Type' => 'application/json',
-            ],
-            'request_body' => $body,
-            'jws_token_length' => strlen($token),
-            'jws_token_segments' => count($tokenParts),
+            'jwe_token_length' => strlen($jweToken),
+            'jws_token_length' => strlen($jwsToken),
         ]);
 
-        $response = $this->request('POST', $url, $token, $body);
+        $response = $this->postJwe($url, $jweToken, $jwsToken);
 
         if ($response === null) {
             return ['success' => false, 'error' => 'Failed to reach PayGlocal'];
@@ -183,69 +252,97 @@ class PayGlocalService implements PaymentGatewayContract
      * Server-to-server status check — the source of truth for a transaction's outcome.
      * Callback data is convenient but never trusted on its own; this call is.
      *
-     * @return array{success: bool, amount: ?string, raw: mixed}
+     * $identifier must be the full statusUrl returned by initiatePayment() — it carries a
+     * token PayGlocal itself signs, which we cannot reconstruct ourselves from a bare gid.
+     *
+     * @return array{success: bool, pending: bool, amount: ?string, raw: mixed}
      */
     public function verifyTransaction(string $identifier): array
     {
-        $gid = $identifier;
-        $url = $this->getBaseUrl() . '/gl/v1/payments/' . $gid . '/status';
-
-        try {
-            $token = $this->buildJwsToken([]);
-        } catch (\Throwable $e) {
-            Log::error('PayGlocal: Failed to build JWS token for status check', [
-                'gid' => $gid,
-                'error' => $e->getMessage(),
+        if (!str_starts_with($identifier, 'http')) {
+            Log::error('PayGlocal: verifyTransaction() needs the statusUrl from initiatePayment(), not a bare gid', [
+                'identifier' => $identifier,
             ]);
-            return ['success' => false, 'amount' => null, 'raw' => 'Failed to sign request: ' . $e->getMessage()];
+            return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'Missing status URL for verification'];
         }
 
-        Log::info('PayGlocal: Verifying transaction', ['gid' => $gid, 'url' => $url]);
+        Log::info('PayGlocal: Verifying transaction', ['status_url' => $identifier]);
 
-        $response = $this->request('GET', $url, $token);
+        $response = $this->getStatusUrl($identifier);
 
         if ($response === null) {
-            return ['success' => false, 'amount' => null, 'raw' => 'Failed to reach PayGlocal'];
+            return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'Failed to reach PayGlocal'];
         }
 
         [$httpCode, $decoded] = $response;
 
         if ($httpCode < 200 || $httpCode >= 300 || $decoded === null) {
             Log::error('PayGlocal: Transaction verification failed', [
-                'gid' => $gid,
+                'status_url' => $identifier,
                 'http_code' => $httpCode,
                 'response' => $decoded,
             ]);
-            return ['success' => false, 'amount' => null, 'raw' => $decoded ?? 'Invalid response from PayGlocal'];
+            return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => $decoded ?? 'Invalid response from PayGlocal'];
         }
 
         $data = $decoded['data'] ?? $decoded;
         $status = $data['status'] ?? null;
-        $isSuccess = in_array(strtolower((string) $status), ['success', 'captured', 'completed'], true);
+        $normalizedStatus = strtolower((string) $status);
+        // sent_for_capture IS the success condition for PayCollect, per PayGlocal's own
+        // reference implementation (response.php in their official SDK): the card is
+        // authorized and the capture instruction has been dispatched — capture itself
+        // completes automatically on their side and isn't something the merchant waits on.
+        // Confirmed against real sandbox transactions, all of which reached exactly this
+        // status and stayed there — this is the terminal state for a successful PayCollect
+        // payment, not an intermediate one.
+        $isSuccess = in_array($normalizedStatus, ['success', 'captured', 'completed', 'sent_for_capture'], true);
+        // INPROGRESS is genuinely transient — still authenticating/authorizing (e.g. 3DS)
+        // when the browser lands back on our callback URL. Not a failure, not resolved yet.
+        $isPending = !$isSuccess && in_array($normalizedStatus, ['inprogress', 'pending', 'initiated'], true);
 
         Log::info('PayGlocal: Transaction verification response', [
-            'gid' => $gid,
+            'status_url' => $identifier,
             'status' => $status ?? 'unknown',
             'is_success' => $isSuccess,
+            'is_pending' => $isPending,
         ]);
 
         return [
             'success' => $isSuccess,
-            'amount' => $data['paymentData']['totalAmount'] ?? null,
+            'pending' => $isPending,
+            'amount' => $data['Amount'] ?? $data['amount'] ?? null,
             'raw' => $data,
         ];
     }
 
     /**
-     * Cheaply pull {txnid, identifier, data} out of the callback POST body — no
-     * authenticity check yet. The actual callback data lives in the JSON body;
-     * verifyCallbackAuthenticity() runs after the atomic claim to confirm it's genuine.
+     * Cheaply pull {txnid, identifier, data} out of the callback's x-gl-token form field —
+     * no authenticity check yet; verifyCallbackAuthenticity() runs after the atomic claim.
+     *
+     * Confirmed against a real PayGlocal callback (captured via ngrok inspector): unlike our
+     * own outgoing requests, PayGlocal POSTs this as an application/x-www-form-urlencoded
+     * field named "x-gl-token" — not a header, not a JSON body. The token is NOT digest-
+     * wrapped ("is-digested": "false") — its payload segment IS the callback data directly:
+     * merchantTxnId, gid, status, Amount, statusUrl (a fresh ready-to-use status-check link),
+     * merchantUniqueId, paymentMethod.
      *
      * @return array{txnid: ?string, identifier: ?string, payment_id: ?string, data: array}
      */
     public function parseCallback(Request $request): array
     {
-        $payload = json_decode($request->getContent(), true);
+        $token = $request->input('x-gl-token');
+
+        if (!$token) {
+            return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
+        }
+
+        $parts = explode('.', $token);
+
+        if (count($parts) !== 3) {
+            return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
+        }
+
+        $payload = json_decode($this->base64UrlDecode($parts[1]), true);
 
         if (!is_array($payload)) {
             return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
@@ -255,24 +352,24 @@ class PayGlocalService implements PaymentGatewayContract
 
         return [
             'txnid' => $payload['merchantTxnId'] ?? null,
-            'identifier' => $gid,
+            'identifier' => $payload['statusUrl'] ?? $gid,
             'payment_id' => $gid,
             'data' => $payload,
         ];
     }
 
     /**
-     * Verify the digest-based JWS token PayGlocal sends in the x-gl-token-external header.
-     * The token's payload segment is a SHA-256 digest of the raw POST body, not the body
-     * itself — this confirms $data (already parsed by parseCallback()) wasn't tampered with
-     * in transit, then verifies the RSA signature when a PayGlocal public key is configured.
+     * Verify the JWS token PayGlocal sends in the x-gl-token form field on callbacks.
+     * Confirmed against a real callback: signed (RS256/PKCS1v1.5) with the private key
+     * counterpart to the PayGlocal public key we hold — same keypair used to encrypt our
+     * outgoing requests, reused by PayGlocal to sign their callbacks back to us.
      */
     public function verifyCallbackAuthenticity(array $data, Request $request): bool
     {
-        $token = $request->header('x-gl-token-external');
+        $token = $request->input('x-gl-token');
 
         if (!$token) {
-            Log::warning('PayGlocal: Missing x-gl-token-external header on callback');
+            Log::warning('PayGlocal: Missing x-gl-token field on callback');
             return false;
         }
 
@@ -285,15 +382,20 @@ class PayGlocalService implements PaymentGatewayContract
 
         [$headerEncoded, $payloadEncoded, $signatureEncoded] = $parts;
 
-        $rawBody = $request->getContent();
-        $expectedDigest = hash('sha256', $rawBody, true);
-        $providedDigest = $this->base64UrlDecode($payloadEncoded);
+        $header = json_decode($this->base64UrlDecode($headerEncoded), true);
+        $isDigested = ($header['is-digested'] ?? null) === 'true';
 
-        if (!hash_equals($expectedDigest, $providedDigest)) {
-            Log::warning('PayGlocal: Callback body digest mismatch — possible tampering', [
-                'merchant_txn_id' => $data['merchantTxnId'] ?? null,
-            ]);
-            return false;
+        if ($isDigested) {
+            $rawBody = $request->getContent();
+            $expectedDigest = hash('sha256', $rawBody, true);
+            $providedDigest = $this->base64UrlDecode($payloadEncoded);
+
+            if (!hash_equals($expectedDigest, $providedDigest)) {
+                Log::warning('PayGlocal: Callback body digest mismatch — possible tampering', [
+                    'merchant_txn_id' => $data['merchantTxnId'] ?? null,
+                ]);
+                return false;
+            }
         }
 
         if (empty($this->publicKey)) {
@@ -306,7 +408,7 @@ class PayGlocalService implements PaymentGatewayContract
 
         try {
             $rsa = PublicKeyLoader::load($this->publicKey)
-                ->withPadding(RSA::SIGNATURE_PKCS1)
+                ->withPadding(PhpseclibRSA::SIGNATURE_PKCS1)
                 ->withHash('sha256');
 
             if (!$rsa->verify($signingInput, $signature)) {
@@ -325,24 +427,18 @@ class PayGlocalService implements PaymentGatewayContract
         return true;
     }
 
-    private function requestHeaders(string $token): array
-    {
-        return [
-            'Content-Type: application/json',
-            'x-gl-token-external: ' . $token,
-            'x-gl-merchantid: ' . $this->merchantId,
-            'x-gl-kid: ' . $this->privateKid,
-        ];
-    }
-
     /**
+     * POST a JWE token as the raw request body, authenticated via the JWS in
+     * x-gl-token-external. Content-Type is text/plain — the body is an opaque encrypted
+     * string, not JSON.
+     *
      * @return array{0: int, 1: mixed}|null [httpCode, decodedBody]
      */
-    private function request(string $method, string $url, string $token, ?array $body = null): ?array
+    private function postJwe(string $url, string $jweToken, string $jwsToken): ?array
     {
         $ch = curl_init();
 
-        $options = [
+        curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => true,
@@ -350,18 +446,46 @@ class PayGlocalService implements PaymentGatewayContract
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_HTTPHEADER => $this->requestHeaders($token),
-        ];
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $jweToken,
+            CURLOPT_HTTPHEADER => [
+                'x-gl-token-external: ' . $jwsToken,
+                'Content-Type: text/plain',
+            ],
+        ]);
 
-        if ($method === 'POST') {
-            $options[CURLOPT_POST] = true;
-            $options[CURLOPT_POSTFIELDS] = json_encode($body ?? []);
-        } else {
-            $options[CURLOPT_HTTPGET] = true;
-        }
+        return $this->execute($ch, $url);
+    }
 
-        curl_setopt_array($ch, $options);
+    /**
+     * Plain GET on a PayGlocal-issued statusUrl — it carries its own signed token in the
+     * query string, so no auth headers of ours are needed or expected.
+     *
+     * @return array{0: int, 1: mixed}|null [httpCode, decodedBody]
+     */
+    private function getStatusUrl(string $url): ?array
+    {
+        $ch = curl_init();
 
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_HTTPGET => true,
+        ]);
+
+        return $this->execute($ch, $url);
+    }
+
+    /**
+     * @return array{0: int, 1: mixed}|null [httpCode, decodedBody]
+     */
+    private function execute(\CurlHandle $ch, string $url): ?array
+    {
         $result = curl_exec($ch);
 
         if (curl_errno($ch)) {
@@ -395,11 +519,6 @@ class PayGlocalService implements PaymentGatewayContract
         }
 
         return [$httpCode, json_decode($rawBody, true)];
-    }
-
-    private function base64UrlEncode(string $data): string
-    {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
     private function base64UrlDecode(string $data): string
