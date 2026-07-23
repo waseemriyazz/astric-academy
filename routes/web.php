@@ -69,6 +69,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     // Payment Gateways
     Route::get('/gateways', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'index'])->name('gateways.index');
     Route::post('/gateways/{gateway}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'update'])->name('gateways.update');
+    Route::get('/gateways/{gateway}/reveal/{field}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'reveal'])->name('gateways.reveal');
 });
 
 Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
