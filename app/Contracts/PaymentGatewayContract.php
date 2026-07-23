@@ -28,7 +28,12 @@ interface PaymentGatewayContract
      * Authoritative server-to-server check — callback data is never trusted alone,
      * this call is the source of truth for whether a transaction actually succeeded.
      *
-     * @return array{success: bool, amount: ?string, raw: mixed}
+     * $pending marks a genuinely in-between state (e.g. PayGlocal's INPROGRESS) —
+     * distinct from failure. A pending transaction must not be fulfilled yet, but
+     * must not be marked failed either; it's left for later reconciliation (webhook
+     * or the payments:expire-stale sweep) rather than shown as a false failure.
+     *
+     * @return array{success: bool, pending: bool, amount: ?string, raw: mixed}
      */
     public function verifyTransaction(string $identifier): array;
 

@@ -165,14 +165,14 @@ class EasebuzzService implements PaymentGatewayContract
                     'txnid' => $txnid,
                     'error' => $error,
                 ]);
-                return ['success' => false, 'amount' => null, 'raw' => 'cURL error: ' . $error];
+                return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'cURL error: ' . $error];
             }
 
             curl_close($ch);
 
             if ($result === false || trim($result) === '') {
                 Log::error('Easebuzz: Empty response from transaction API', ['txnid' => $txnid]);
-                return ['success' => false, 'amount' => null, 'raw' => 'Empty response from Easebuzz'];
+                return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'Empty response from Easebuzz'];
             }
 
             $decoded = json_decode($result, true);
@@ -182,13 +182,15 @@ class EasebuzzService implements PaymentGatewayContract
                     'txnid' => $txnid,
                     'response' => substr($result, 0, 500),
                 ]);
-                return ['success' => false, 'amount' => null, 'raw' => 'Invalid JSON response'];
+                return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'Invalid JSON response'];
             }
 
             $data = $decoded['data'] ?? $decoded;
             $transactionStatus = $data['txn_status'] ?? $data['status'] ?? null;
+            $normalizedStatus = strtolower((string) $transactionStatus);
             $isSuccess = ((int) ($decoded['status'] ?? 0) === 1)
-                && in_array(strtolower((string) $transactionStatus), ['success', 'completed'], true);
+                && in_array($normalizedStatus, ['success', 'completed'], true);
+            $isPending = !$isSuccess && in_array($normalizedStatus, ['pending', 'initiated', 'inprogress'], true);
 
             Log::info('Easebuzz: Transaction verification response', [
                 'txnid' => $txnid,
@@ -196,10 +198,12 @@ class EasebuzzService implements PaymentGatewayContract
                 'response_status' => $decoded['status'] ?? 'unknown',
                 'transaction_status' => $transactionStatus ?? 'unknown',
                 'is_success' => $isSuccess,
+                'is_pending' => $isPending,
             ]);
 
             return [
                 'success' => $isSuccess,
+                'pending' => $isPending,
                 'amount' => $data['amount'] ?? null,
                 'raw' => $data,
             ];
@@ -209,7 +213,7 @@ class EasebuzzService implements PaymentGatewayContract
                 'txnid' => $txnid,
                 'error' => $e->getMessage(),
             ]);
-            return ['success' => false, 'amount' => null, 'raw' => 'Exception: ' . $e->getMessage()];
+            return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'Exception: ' . $e->getMessage()];
         }
     }
 
