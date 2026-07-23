@@ -34,7 +34,7 @@
                 <div class="flex items-center justify-between">
                     <label for="is_active_{{ $key }}" class="text-sm font-semibold text-gray-700">Enable this gateway</label>
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="is_active_{{ $key }}" name="is_active" value="1" x-model="active" {{ $gateway->is_active ? 'checked' : '' }} class="sr-only peer">
+                        <input type="checkbox" id="is_active_{{ $key }}" name="is_active" value="1" x-model="active" onchange="this.form.requestSubmit()" {{ $gateway->is_active ? 'checked' : '' }} class="sr-only peer">
                         <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
                         <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
                     </label>
@@ -72,9 +72,9 @@
                             <p class="text-xs text-gray-400 mt-1">Identifies our signing keypair to PayGlocal — sent on every request. Leave blank to keep the current value.</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Public KID <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Public KID</label>
                             <input type="password" name="config[public_kid]" placeholder="{{ $gateway->credential('public_kid') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
-                            <p class="text-xs text-gray-400 mt-1">PayGlocal's reference for their public key. Not sent on requests today — kept for reconciliation. Leave blank to keep the current value.</p>
+                            <p class="text-xs text-gray-400 mt-1">Identifies PayGlocal's public key used to encrypt every outgoing request. Leave blank to keep the current value.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">RSA Private Key</label>
@@ -82,9 +82,9 @@
                             <p class="text-xs text-gray-400 mt-1">Ours — used to sign outgoing requests to PayGlocal. Leave blank to keep the current value.</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">PayGlocal Public Key <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">PayGlocal Public Key</label>
                             <textarea name="config[public_key]" rows="4" placeholder="{{ $gateway->credential('public_key') ? 'A public key is already set — leave blank to keep it' : '-----BEGIN PUBLIC KEY-----' }}" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono"></textarea>
-                            <p class="text-xs text-gray-400 mt-1">PayGlocal's own key — used to verify their callback signature. Without it, callbacks are still cross-checked against PayGlocal's status API before enrollment.</p>
+                            <p class="text-xs text-gray-400 mt-1">PayGlocal's own key — every outgoing request is encrypted with it before being signed with ours. Required for any request to succeed.</p>
                         </div>
                     @endif
                 </div>
