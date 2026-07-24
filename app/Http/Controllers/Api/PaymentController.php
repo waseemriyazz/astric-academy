@@ -15,20 +15,11 @@ use App\Services\PaymentFulfillmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    private const CURRENCY_RATES = [
-        'USD' => 1,
-        'CAD' => 1.36,
-        'EUR' => 0.92,
-        'GBP' => 0.79,
-        'AUD' => 1.52,
-        'INR' => 83.33,
-        'AED' => 3.67,
-    ];
-
     public function __construct(
         private readonly EasebuzzService $easebuzz,
         private readonly PayGlocalService $payglocal,
@@ -60,15 +51,6 @@ class PaymentController extends Controller
         ]);
 
         $course = Course::findOrFail($request->course_id);
-        $amountUsd = (float) $course->price_max;
-        $rate = self::CURRENCY_RATES['INR'];
-        $amountInr = round($amountUsd * $rate, 2);
-
-        Log::info('PAYMENT: Price calculated', [
-            'course_id' => $course->id,
-            'course_title' => $course->title,
-            'amount_inr' => $amountInr,
-        ]);
 
         // Check if user already exists
         $existingUser = User::where('email', $request->buyer_email)->first();
@@ -152,14 +134,34 @@ class PaymentController extends Controller
 
         $txnid = $gatewayService->generateTxnId();
 
+        // PayGlocal supports multi-currency, defaulting to USD when the frontend didn't
+        // send one. Easebuzz in this codebase only ever settles INR — force INR
+        // unconditionally regardless of what the frontend sent (or didn't).
+        $currencyCode = $gatewayName === PaymentGatewayConfig::GATEWAY_PAYGLOCAL
+            ? ($request->currency_code ?? 'USD')
+            : 'INR';
+
+        // Live rates refreshed daily by currencies:refresh-rates; static config is only
+        // the fallback for a cold cache or a failed refresh.
+        $rates = Cache::get('currency_rates', config('currencies.rates'));
+        $amountUsd = (float) $course->price_max;
+        $amount = round($amountUsd * ($rates[$currencyCode] ?? $rates['INR']), 2);
+
+        Log::info('PAYMENT: Price calculated', [
+            'course_id' => $course->id,
+            'course_title' => $course->title,
+            'currency' => $currencyCode,
+            'amount' => $amount,
+        ]);
+
         $payment = Payment::create([
             'txnid' => $txnid,
             'course_id' => $course->id,
             'buyer_name' => $request->buyer_name,
             'buyer_email' => $request->buyer_email,
             'buyer_phone' => $request->buyer_phone,
-            'amount' => $amountInr,
-            'currency' => 'INR',
+            'amount' => $amount,
+            'currency' => $currencyCode,
             'gateway' => $gatewayName,
             'status' => Payment::STATUS_PENDING,
         ]);
@@ -172,8 +174,8 @@ class PaymentController extends Controller
         ]);
 
         $initiateResult = $gatewayName === PaymentGatewayConfig::GATEWAY_PAYGLOCAL
-            ? $this->initiatePayGlocal($payment, $course, $request, $amountInr)
-            : $this->initiateEasebuzz($payment, $course, $request, $amountInr);
+            ? $this->initiatePayGlocal($payment, $course, $request, $amount, $currencyCode)
+            : $this->initiateEasebuzz($payment, $course, $request, $amount);
 
         if (!$initiateResult['success']) {
             Log::error('PAYMENT: Gateway initiate API failed', [
@@ -191,7 +193,8 @@ class PaymentController extends Controller
         Log::info('=== PAYMENT INITIATE COMPLETED ===', [
             'gateway' => $gatewayName,
             'txnid' => $txnid,
-            'amount_inr' => $amountInr,
+            'currency' => $currencyCode,
+            'amount' => $amount,
             'redirect_url' => $initiateResult['redirect_url'],
             'course' => $course->title,
             'customer_email' => $this->maskValue($request->buyer_email),
@@ -201,7 +204,8 @@ class PaymentController extends Controller
             'success' => true,
             'data' => [
                 'txnid' => $txnid,
-                'amount' => (string) $amountInr,
+                'amount' => (string) $amount,
+                'currency' => $currencyCode,
                 'productinfo' => $course->title,
                 'redirect_url' => $initiateResult['redirect_url'],
                 'course_title' => $course->title,
@@ -212,14 +216,14 @@ class PaymentController extends Controller
     /**
      * @return array{success: bool, redirect_url?: string, error?: string}
      */
-    private function initiateEasebuzz(Payment $payment, Course $course, PaymentInitiateRequest $request, float $amountInr): array
+    private function initiateEasebuzz(Payment $payment, Course $course, PaymentInitiateRequest $request, float $amount): array
     {
         $productinfo = preg_replace('/[^a-zA-Z0-9\s\-|]/', '', $course->title);
         $productinfo = trim(substr($productinfo, 0, 45));
 
         $params = [
             'txnid' => $payment->txnid,
-            'amount' => number_format($amountInr, 2, '.', ''),
+            'amount' => number_format($amount, 2, '.', ''),
             'productinfo' => $productinfo,
             'firstname' => $request->buyer_name,
             'email' => $request->buyer_email,
@@ -244,12 +248,12 @@ class PaymentController extends Controller
     /**
      * @return array{success: bool, redirect_url?: string, error?: string}
      */
-    private function initiatePayGlocal(Payment $payment, Course $course, PaymentInitiateRequest $request, float $amountInr): array
+    private function initiatePayGlocal(Payment $payment, Course $course, PaymentInitiateRequest $request, float $amount, string $currencyCode): array
     {
         $result = $this->payglocal->initiatePayment([
             'txnid' => $payment->txnid,
-            'amount' => number_format($amountInr, 2, '.', ''),
-            'currency' => 'INR',
+            'amount' => number_format($amount, 2, '.', ''),
+            'currency' => $currencyCode,
             'firstname' => $request->buyer_name,
             'email' => $request->buyer_email,
             'callback_url' => config('app.payglocal_callback_url'),

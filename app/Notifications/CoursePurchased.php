@@ -35,6 +35,7 @@ class CoursePurchased extends Notification implements ShouldQueue
         $portalUrl = config('app.portal_url', 'http://localhost:8000');
         $appName = config('app.name');
         $loginUrl = $portalUrl . '/login?email=' . urlencode($notifiable->email);
+        $symbol = config('currencies.symbols')[$this->payment->currency] ?? $this->payment->currency . ' ';
 
         $mail = (new MailMessage)
             ->subject('Welcome to ' . $appName . ' — Your Enrollment is Confirmed!')
@@ -43,7 +44,7 @@ class CoursePurchased extends Notification implements ShouldQueue
             ->line('---')
             ->line('**Course:** ' . $this->course->title)
             ->line('**Transaction ID:** ' . $this->payment->txnid)
-            ->line('**Amount Paid:** ₹' . number_format((float) $this->payment->amount, 2))
+            ->line('**Amount Paid:** ' . $symbol . number_format((float) $this->payment->amount, 2))
             ->line('**Date:** ' . $this->payment->created_at->format('F j, Y, g:i a'))
             ->line('---');
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\TestimonialController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\PaymentController;
@@ -10,6 +11,7 @@ Route::get('/courses', [CourseController::class, 'index']);
 Route::get('/courses/{course}', [CourseController::class, 'show']);
 Route::get('/testimonials', [TestimonialController::class, 'index']);
 Route::get('/faqs', [FaqController::class, 'index']);
+Route::get('/currencies', [CurrencyController::class, 'index']);
 
 // Payment routes
 Route::post('/payment/initiate', [PaymentController::class, 'initiate'])->middleware('throttle:10,1');
