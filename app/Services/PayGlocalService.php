@@ -35,15 +35,36 @@ use phpseclib3\Crypt\RSA as PhpseclibRSA;
  */
 class PayGlocalService implements PaymentGatewayContract
 {
-    private ?string $merchantId;
-    private ?string $privateKid;
-    private ?string $publicKid;
-    private ?string $privateKey;
-    private ?string $publicKey;
-    private bool $isProductionMode;
+    private ?string $merchantId = null;
+    private ?string $privateKid = null;
+    private ?string $publicKid = null;
+    private ?string $privateKey = null;
+    private ?string $publicKey = null;
+    private bool $isProductionMode = false;
+    private bool $loaded = false;
 
+    /**
+     * Deliberately does NOT touch the database here. Laravel's console kernel
+     * auto-discovers every command in app/Console/Commands on every artisan
+     * invocation — including `migrate` and `serve` — and has to instantiate each one
+     * through the container just to register it, regardless of which command is
+     * actually being run. Several commands type-hint this service in their
+     * constructor, so an eager DB query here means `php artisan migrate` (running
+     * for the first time, before payment_gateway_configs exists yet) crashes trying
+     * to query a table it hasn't created yet — a chicken-and-egg failure that blocks
+     * bootstrapping the app at all on a fresh install. Credentials load lazily on
+     * first actual use instead.
+     */
     public function __construct()
     {
+    }
+
+    private function ensureLoaded(): void
+    {
+        if ($this->loaded) {
+            return;
+        }
+
         $config = PaymentGatewayConfig::where('gateway', PaymentGatewayConfig::GATEWAY_PAYGLOCAL)->first();
 
         $this->merchantId = $config?->credential('merchant_id');
@@ -54,6 +75,7 @@ class PayGlocalService implements PaymentGatewayContract
         $this->privateKey = $config?->credential('private_key');
         $this->publicKey = $config?->credential('public_key');
         $this->isProductionMode = (bool) $config?->is_production;
+        $this->loaded = true;
     }
 
     /**
@@ -66,6 +88,8 @@ class PayGlocalService implements PaymentGatewayContract
 
     public function isConfigured(): bool
     {
+        $this->ensureLoaded();
+
         return !empty($this->merchantId)
             && !empty($this->privateKid)
             && !empty($this->privateKey)
@@ -75,11 +99,15 @@ class PayGlocalService implements PaymentGatewayContract
 
     public function isProduction(): bool
     {
+        $this->ensureLoaded();
+
         return $this->isProductionMode;
     }
 
     private function getBaseUrl(): string
     {
+        $this->ensureLoaded();
+
         return $this->isProductionMode
             ? 'https://api.payglocal.in'
             : 'https://api.uat.payglocal.in';
@@ -90,6 +118,8 @@ class PayGlocalService implements PaymentGatewayContract
      */
     private function buildJwe(array $payload): string
     {
+        $this->ensureLoaded();
+
         $algorithmManager = new AlgorithmManager([
             new RSAOAEP256(),
             new A128CBCHS256(),
@@ -128,6 +158,8 @@ class PayGlocalService implements PaymentGatewayContract
      */
     private function buildJws(string $jweToken): string
     {
+        $this->ensureLoaded();
+
         $algorithmManager = new AlgorithmManager([new RS256()]);
         $jwsBuilder = new JWSBuilder($algorithmManager);
 
@@ -366,6 +398,8 @@ class PayGlocalService implements PaymentGatewayContract
      */
     public function verifyCallbackAuthenticity(array $data, Request $request): bool
     {
+        $this->ensureLoaded();
+
         $token = $request->input('x-gl-token');
 
         if (!$token) {
