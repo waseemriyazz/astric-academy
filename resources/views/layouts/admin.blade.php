@@ -76,6 +76,11 @@
                 <i class="fas fa-credit-card w-5 text-center text-lg {{ request()->routeIs('admin.gateways.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Payment Gateways</span>
             </a>
+
+            <a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+                <i class="fas fa-receipt w-5 text-center text-lg {{ request()->routeIs('admin.payments.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
+                <span class="font-semibold">Payments</span>
+            </a>
         </nav>
         
         <!-- Logout -->

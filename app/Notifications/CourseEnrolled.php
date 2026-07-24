@@ -33,7 +33,7 @@ class CourseEnrolled extends Notification implements ShouldQueue
         $portalUrl = config('app.portal_url', 'http://localhost:8000');
         $appName = config('app.name');
         $loginUrl = $portalUrl . '/login?email=' . urlencode($notifiable->email);
-        $symbol = config('currencies.symbols')[$this->payment->currency] ?? $this->payment->currency . ' ';
+        $symbol = $this->payment->currencySymbol();
 
         return (new MailMessage)
             ->subject('Welcome back to ' . $appName . ' — New Enrollment Confirmed!')

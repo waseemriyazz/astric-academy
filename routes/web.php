@@ -70,6 +70,10 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::get('/gateways', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'index'])->name('gateways.index');
     Route::post('/gateways/{gateway}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'update'])->name('gateways.update');
     Route::get('/gateways/{gateway}/reveal/{field}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'reveal'])->name('gateways.reveal');
+
+    // Payments
+    Route::get('/payments', [\App\Http\Controllers\Admin\AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/{payment}', [\App\Http\Controllers\Admin\AdminPaymentController::class, 'show'])->name('payments.show');
 });
 
 Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {

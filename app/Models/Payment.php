@@ -75,4 +75,9 @@ class Payment extends Model
     {
         return $this->status === self::STATUS_PENDING;
     }
+
+    public function currencySymbol(): string
+    {
+        return config('currencies.symbols')[$this->currency] ?? $this->currency . ' ';
+    }
 }
