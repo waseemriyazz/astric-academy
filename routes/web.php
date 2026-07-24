@@ -65,6 +65,11 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::get('/faqs/{faq}/edit', [\App\Http\Controllers\Admin\AdminFaqController::class, 'edit'])->name('faqs.edit');
     Route::put('/faqs/{faq}', [\App\Http\Controllers\Admin\AdminFaqController::class, 'update'])->name('faqs.update');
     Route::delete('/faqs/{faq}', [\App\Http\Controllers\Admin\AdminFaqController::class, 'destroy'])->name('faqs.destroy');
+
+    // Payment Gateways
+    Route::get('/gateways', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'index'])->name('gateways.index');
+    Route::post('/gateways/{gateway}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'update'])->name('gateways.update');
+    Route::get('/gateways/{gateway}/reveal/{field}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'reveal'])->name('gateways.reveal');
 });
 
 Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {

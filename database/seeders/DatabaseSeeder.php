@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             CourseSeeder::class,
             TestimonialSeeder::class,
             FaqSeeder::class,
+            PaymentGatewayConfigSeeder::class,
         ]);
     }
 }

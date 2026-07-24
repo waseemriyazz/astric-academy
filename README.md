@@ -1,59 +1,209 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="300" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Astryx Academy — Backend
+
+Laravel backend for the Astryx Academy platform: courses, student portal, admin panel, and payment processing (Easebuzz + PayGlocal).
+
+This README is written for the whole team, not just people who already know Laravel — every command below explains **what it does** and **when you'd run it**, not just the command itself.
+
+---
+
+## First-time setup
+
+Run these once, in order, when setting up the project on a new machine.
+
+```bash
+# 1. Install PHP dependencies (like npm install, but for PHP — reads composer.json,
+#    downloads everything into vendor/)
+composer install
+
+# 2. Copy the example environment file to a real one, then fill in your own values
+#    (database, API keys, etc.) in the new .env file
+cp .env.example .env
+
+# 3. Generate the app's encryption key (Laravel needs this to encrypt sessions,
+#    cookies, etc. — without it, the app won't boot)
+php artisan key:generate
+
+# 4. Create the database tables (runs every migration file in database/migrations/,
+#    in order, building the schema from scratch)
+php artisan migrate
+
+# 5. Populate the database with initial data — admin user, sample courses,
+#    testimonials, FAQs, and the payment gateway config rows (Easebuzz/PayGlocal)
+php artisan db:seed
+```
+
+## Running the app day-to-day
+
+```bash
+# Start the backend server (serves the API + admin panel at http://localhost:8000)
+php artisan serve
+
+# In a separate terminal, if you're also touching frontend assets (admin panel CSS/JS):
+npm run dev
+```
+
+The React frontend (course pages, checkout) is a **separate project** (`landing-New`) — see its own README for how to run that.
+
+---
+
+## Everyday commands
+
+### Database
+
+```bash
+# Add new tables/columns after pulling code with new migration files
+php artisan migrate
+
+# ⚠️ Destroys ALL data and rebuilds the database from scratch, then reseeds it.
+# Only use this locally when you want a totally clean slate.
+php artisan migrate:fresh --seed
+
+# Check which migrations have run and which haven't
+php artisan migrate:status
+```
+
+### Seeding data (courses, admin user, etc.)
+
+```bash
+# Populate the database with everything the app needs to run: admin user, the
+# standard course catalog, testimonials, FAQs, and payment gateway config rows.
+# Run this once after your first `php artisan migrate` on a new setup.
+php artisan db:seed
+```
+
+This is all most people need — it runs `CourseSeeder` (29 hand-written courses)
+automatically as part of the standard seed list in `database/seeders/DatabaseSeeder.php`.
+
+**Exporting a live snapshot of courses/students** — a separate tool for capturing
+whatever's *actually* in the database right now (e.g. after courses were edited
+through the admin panel and no longer match the original hardcoded seeder):
+
+```bash
+# Generates database/seeders/CourseSnapshotSeeder.php from the current courses table
+php artisan seed:export courses
+
+# Generates database/seeders/StudentSnapshotSeeder.php from the current students
+# ⚠️ Bakes in real student names/emails/password hashes — think before committing
+# this file to git, it's not run automatically and isn't part of the default seed list.
+php artisan seed:export students
+```
+
+To actually run one of these generated snapshot files:
+```bash
+php artisan db:seed --class=Database\Seeders\CourseSnapshotSeeder
+```
+Safe to re-run — it upserts by title (courses) or email (students) rather than
+creating duplicates.
+
+### Clearing cached config/routes (run this if changes to `.env` or `routes/` don't seem to take effect)
+
+```bash
+php artisan config:clear
+php artisan route:clear
+php artisan cache:clear
+```
+
+### Interactive shell — run PHP/database code directly without writing a script
+
+```bash
+php artisan tinker
+```
+Useful for one-off checks, e.g. `App\Models\Payment::where('status', 'paid')->count()`.
+
+### See all available routes
+
+```bash
+php artisan route:list
+```
+
+---
+
+## Payment gateway commands
+
+These are custom commands built specifically for this project's payment integration — not standard Laravel.
+
+### `php artisan payments:status [txnid]`
+Check a payment's **live status directly against the gateway** (Easebuzz or PayGlocal) — the same check the app itself uses to decide success/failure. Doesn't rely on webhooks or callbacks having arrived yet.
+
+```bash
+# List all payments currently sitting as pending/processing
+php artisan payments:status
+
+# Check one specific transaction
+php artisan payments:status ACAD_9887a0f0d242441389903f9235c743e7
+```
+
+### `php artisan payments:expire-stale`
+Sweeps payments that have been stuck as pending/processing for too long (default 30 minutes) and reconciles them against the gateway's status API — marks genuinely completed ones as paid, expires genuinely dead ones, and leaves anything still legitimately in-progress alone. **Runs automatically every 15 minutes** in production (see `routes/console.php`) — you don't normally need to run this manually, but it's safe to if you want an immediate check.
+
+```bash
+php artisan payments:expire-stale
+```
+
+### `php artisan payglocal:test`
+Sends one real test transaction to PayGlocal's sandbox using whatever credentials are currently saved in the admin panel, and prints the full result — safe to run anytime, never affects which gateway is actually live for real checkouts.
+
+```bash
+php artisan payglocal:test
+php artisan payglocal:test --amount=5.00   # optional: change the test amount
+```
+
+---
+
+## Admin panel
+
+Visit `/admin/gateways` (while logged in as an admin) to:
+- Switch which payment gateway is live (Easebuzz or PayGlocal) — **only one can be active at a time**, toggling one automatically turns the other off
+- Enter/update gateway credentials (merchant ID, keys, etc.)
+- Switch between sandbox and production mode per gateway
+
+---
+
+## Testing PayGlocal locally
+
+PayGlocal needs to send a callback to our server after a customer completes checkout. Since your local machine (`localhost:8000`) isn't reachable from the internet, you need a tunnel for that callback to reach you during local testing:
+
+```bash
+# 1. Install ngrok (one-time, via Homebrew on Mac)
+brew install ngrok
+
+# 2. Sign up free at https://dashboard.ngrok.com/signup, get your authtoken from
+#    https://dashboard.ngrok.com/get-started/your-authtoken, then run once:
+ngrok config add-authtoken YOUR_TOKEN_HERE
+
+# 3. With `php artisan serve` already running in another terminal, start the tunnel:
+ngrok http 8000
+```
+
+ngrok will print a public URL like `https://abc123.ngrok-free.dev`. Put that in your `.env`:
+```
+PAYGLOCAL_CALLBACK_URL=https://abc123.ngrok-free.dev/api/payment/payglocal/success
+```
+Then `php artisan config:clear` so the new value takes effect. This is **dev-only** — in production, the real domain is used directly and no tunnel is needed.
+
+---
+
+## Dependency management (composer)
+
+Composer is PHP's equivalent of npm — it manages this project's PHP packages, listed in `composer.json`.
+
+```bash
+# Install everything listed in composer.json (run after cloning, or after pulling
+# changes that added new dependencies)
+composer install
+
+# Add a new package
+composer require vendor/package-name
+
+# Update all packages to their latest allowed versions (careful — can introduce
+# breaking changes, usually only done deliberately)
+composer update
+```
+
+---
 
 ## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# astric-academy
+Laravel is a web application framework with expressive, elegant syntax. Full documentation: [laravel.com/docs](https://laravel.com/docs).
