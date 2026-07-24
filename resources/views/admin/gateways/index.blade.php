@@ -11,19 +11,23 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         @foreach($gateways as $key => $gateway)
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden" x-data="{ active: {{ $gateway->is_active ? 'true' : 'false' }} }">
-            <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div
+            class="rounded-xl overflow-hidden transition-all duration-300"
+            :class="active ? 'bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 border border-emerald-200 shadow-[0_8px_28px_-8px_rgba(16,185,129,0.35)]' : 'bg-white border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]'"
+            x-data="{ active: {{ $gateway->is_active ? 'true' : 'false' }} }"
+        >
+            <div class="px-6 py-5 flex items-center justify-between transition-colors duration-300" :class="active ? 'border-b border-emerald-100' : 'border-b border-gray-100'">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
                         <i class="fas {{ $key === 'payglocal' ? 'fa-globe' : 'fa-bolt' }} text-lg"></i>
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-gray-900">{{ ucfirst($key) }}</h3>
-                        <p class="text-xs text-gray-500" x-text="active ? 'Active' : 'Inactive'" :class="active ? 'text-green-600 font-semibold' : 'text-gray-400'"></p>
+                        <p class="text-xs text-gray-500" x-text="active ? 'Active' : 'Inactive'" :class="active ? 'text-emerald-600 font-semibold' : 'text-gray-400'"></p>
                     </div>
                 </div>
 
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $gateway->is_active ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-50 text-gray-500 border border-gray-200' }}">
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ $gateway->is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-50 text-gray-500 border border-gray-200' }}">
                     {{ $gateway->is_active ? 'Active' : 'Inactive' }}
                 </span>
             </div>
@@ -31,14 +35,10 @@
             <form action="{{ route('admin.gateways.update', $key) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
                 @csrf
 
-                <div class="flex items-center justify-between">
-                    <label for="is_active_{{ $key }}" class="text-sm font-semibold text-gray-700">Enable this gateway</label>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="is_active_{{ $key }}" name="is_active" value="1" x-model="active" onchange="this.form.requestSubmit()" {{ $gateway->is_active ? 'checked' : '' }} class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
-                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
-                    </label>
-                </div>
+                <label for="is_active_{{ $key }}" class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input type="radio" id="is_active_{{ $key }}" name="is_active" value="1" onchange="this.form.requestSubmit()" {{ $gateway->is_active ? 'checked' : '' }} class="w-4 h-4 accent-emerald-600 cursor-pointer">
+                    <span class="text-sm font-semibold text-gray-700">Set as active gateway</span>
+                </label>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Environment</label>
