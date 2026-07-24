@@ -53,7 +53,7 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Merchant Key</label>
                             <div class="relative" x-data="{ show: false }">
-                                <input type="password" x-ref="input" name="config[key]" placeholder="{{ $gateway->credential('key') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
+                                <input type="password" x-ref="input" autocomplete="new-password" name="config[key]" placeholder="{{ $gateway->credential('key') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
                                 <button type="button" @click="if ($refs.input.type === 'password' && !$refs.input.value) { fetch('{{ route('admin.gateways.reveal', [$key, 'key']) }}').then(r => r.json()).then(d => { $refs.input.value = d.value; $refs.input.type = 'text'; show = true; }); } else { $refs.input.type = $refs.input.type === 'password' ? 'text' : 'password'; show = $refs.input.type === 'text'; }" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i :class="show ? 'fa-eye-slash' : 'fa-eye'" class="fas text-sm"></i>
                                 </button>
@@ -63,7 +63,7 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Salt</label>
                             <div class="relative" x-data="{ show: false }">
-                                <input type="password" x-ref="input" name="config[salt]" placeholder="{{ $gateway->credential('salt') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
+                                <input type="password" x-ref="input" autocomplete="new-password" name="config[salt]" placeholder="{{ $gateway->credential('salt') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
                                 <button type="button" @click="if ($refs.input.type === 'password' && !$refs.input.value) { fetch('{{ route('admin.gateways.reveal', [$key, 'salt']) }}').then(r => r.json()).then(d => { $refs.input.value = d.value; $refs.input.type = 'text'; show = true; }); } else { $refs.input.type = $refs.input.type === 'password' ? 'text' : 'password'; show = $refs.input.type === 'text'; }" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i :class="show ? 'fa-eye-slash' : 'fa-eye'" class="fas text-sm"></i>
                                 </button>
@@ -74,7 +74,7 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Merchant ID</label>
                             <div class="relative" x-data="{ show: false }">
-                                <input type="password" x-ref="input" name="config[merchant_id]" placeholder="{{ $gateway->credential('merchant_id') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
+                                <input type="password" x-ref="input" autocomplete="new-password" name="config[merchant_id]" placeholder="{{ $gateway->credential('merchant_id') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
                                 <button type="button" @click="if ($refs.input.type === 'password' && !$refs.input.value) { fetch('{{ route('admin.gateways.reveal', [$key, 'merchant_id']) }}').then(r => r.json()).then(d => { $refs.input.value = d.value; $refs.input.type = 'text'; show = true; }); } else { $refs.input.type = $refs.input.type === 'password' ? 'text' : 'password'; show = $refs.input.type === 'text'; }" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i :class="show ? 'fa-eye-slash' : 'fa-eye'" class="fas text-sm"></i>
                                 </button>
@@ -84,7 +84,7 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Private KID</label>
                             <div class="relative" x-data="{ show: false }">
-                                <input type="password" x-ref="input" name="config[private_kid]" placeholder="{{ $gateway->credential('private_kid') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
+                                <input type="password" x-ref="input" autocomplete="new-password" name="config[private_kid]" placeholder="{{ $gateway->credential('private_kid') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
                                 <button type="button" @click="if ($refs.input.type === 'password' && !$refs.input.value) { fetch('{{ route('admin.gateways.reveal', [$key, 'private_kid']) }}').then(r => r.json()).then(d => { $refs.input.value = d.value; $refs.input.type = 'text'; show = true; }); } else { $refs.input.type = $refs.input.type === 'password' ? 'text' : 'password'; show = $refs.input.type === 'text'; }" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i :class="show ? 'fa-eye-slash' : 'fa-eye'" class="fas text-sm"></i>
                                 </button>
@@ -94,7 +94,7 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Public KID</label>
                             <div class="relative" x-data="{ show: false }">
-                                <input type="password" x-ref="input" name="config[public_kid]" placeholder="{{ $gateway->credential('public_kid') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
+                                <input type="password" x-ref="input" autocomplete="new-password" name="config[public_kid]" placeholder="{{ $gateway->credential('public_kid') ? '••••••••••••' : 'Not set' }}" class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-all font-mono">
                                 <button type="button" @click="if ($refs.input.type === 'password' && !$refs.input.value) { fetch('{{ route('admin.gateways.reveal', [$key, 'public_kid']) }}').then(r => r.json()).then(d => { $refs.input.value = d.value; $refs.input.type = 'text'; show = true; }); } else { $refs.input.type = $refs.input.type === 'password' ? 'text' : 'password'; show = $refs.input.type === 'text'; }" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <i :class="show ? 'fa-eye-slash' : 'fa-eye'" class="fas text-sm"></i>
                                 </button>
