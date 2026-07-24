@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('payments:expire-stale')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('currencies:refresh-rates')->daily();
