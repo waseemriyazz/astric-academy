@@ -64,6 +64,39 @@ php artisan migrate:fresh --seed
 php artisan migrate:status
 ```
 
+### Seeding data (courses, admin user, etc.)
+
+```bash
+# Populate the database with everything the app needs to run: admin user, the
+# standard course catalog, testimonials, FAQs, and payment gateway config rows.
+# Run this once after your first `php artisan migrate` on a new setup.
+php artisan db:seed
+```
+
+This is all most people need — it runs `CourseSeeder` (29 hand-written courses)
+automatically as part of the standard seed list in `database/seeders/DatabaseSeeder.php`.
+
+**Exporting a live snapshot of courses/students** — a separate tool for capturing
+whatever's *actually* in the database right now (e.g. after courses were edited
+through the admin panel and no longer match the original hardcoded seeder):
+
+```bash
+# Generates database/seeders/CourseSnapshotSeeder.php from the current courses table
+php artisan seed:export courses
+
+# Generates database/seeders/StudentSnapshotSeeder.php from the current students
+# ⚠️ Bakes in real student names/emails/password hashes — think before committing
+# this file to git, it's not run automatically and isn't part of the default seed list.
+php artisan seed:export students
+```
+
+To actually run one of these generated snapshot files:
+```bash
+php artisan db:seed --class=Database\Seeders\CourseSnapshotSeeder
+```
+Safe to re-run — it upserts by title (courses) or email (students) rather than
+creating duplicates.
+
 ### Clearing cached config/routes (run this if changes to `.env` or `routes/` don't seem to take effect)
 
 ```bash
