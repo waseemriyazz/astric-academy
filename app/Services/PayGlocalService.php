@@ -348,15 +348,22 @@ class PayGlocalService implements PaymentGatewayContract
     }
 
     /**
-     * Cheaply pull {txnid, identifier, data} out of the callback's x-gl-token form field —
-     * no authenticity check yet; verifyCallbackAuthenticity() runs after the atomic claim.
+     * Cheaply pull {txnid, identifier, data} out of an inbound PayGlocal request — no
+     * authenticity check yet; verifyCallbackAuthenticity() runs after the atomic claim.
      *
-     * Confirmed against a real PayGlocal callback (captured via ngrok inspector): unlike our
-     * own outgoing requests, PayGlocal POSTs this as an application/x-www-form-urlencoded
-     * field named "x-gl-token" — not a header, not a JSON body. The token is NOT digest-
-     * wrapped ("is-digested": "false") — its payload segment IS the callback data directly:
-     * merchantTxnId, gid, status, Amount, statusUrl (a fresh ready-to-use status-check link),
-     * merchantUniqueId, paymentMethod.
+     * Two distinct shapes land here, both confirmed against real PayGlocal traffic:
+     *
+     *  - Browser-redirect callback (payglocalSuccess/Failure): POSTed as an
+     *    application/x-www-form-urlencoded field named "x-gl-token" — not a header, not a
+     *    JSON body. The token is NOT digest-wrapped ("is-digested": "false") — its payload
+     *    segment IS the callback data directly: merchantTxnId, gid, status, Amount,
+     *    statusUrl (a fresh ready-to-use status-check link), merchantUniqueId, paymentMethod.
+     *
+     *  - Async merchant webhook (payglocalWebhook, docs.payglocal.in/merchant/webhooks):
+     *    a plain JSON body — no token, no wrapper — with merchantTxnId, gid, merchantId,
+     *    status, amount, currency, paymentMethod, cardBrand, country. There is no statusUrl
+     *    here; the one already stored on the Payment row at initiate time is what
+     *    handleGatewayCallback() actually uses for verifyTransaction().
      *
      * @return array{txnid: ?string, identifier: ?string, payment_id: ?string, data: array}
      */
@@ -364,19 +371,32 @@ class PayGlocalService implements PaymentGatewayContract
     {
         $token = $request->input('x-gl-token');
 
-        if (!$token) {
-            return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
+        if ($token) {
+            $parts = explode('.', $token);
+
+            if (count($parts) !== 3) {
+                return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
+            }
+
+            $payload = json_decode($this->base64UrlDecode($parts[1]), true);
+
+            if (!is_array($payload)) {
+                return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
+            }
+
+            $gid = $payload['gid'] ?? null;
+
+            return [
+                'txnid' => $payload['merchantTxnId'] ?? null,
+                'identifier' => $payload['statusUrl'] ?? $gid,
+                'payment_id' => $gid,
+                'data' => $payload,
+            ];
         }
 
-        $parts = explode('.', $token);
+        $payload = $request->json()->all();
 
-        if (count($parts) !== 3) {
-            return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
-        }
-
-        $payload = json_decode($this->base64UrlDecode($parts[1]), true);
-
-        if (!is_array($payload)) {
+        if (empty($payload['merchantTxnId']) && empty($payload['gid'])) {
             return ['txnid' => null, 'identifier' => null, 'payment_id' => null, 'data' => []];
         }
 
@@ -384,7 +404,7 @@ class PayGlocalService implements PaymentGatewayContract
 
         return [
             'txnid' => $payload['merchantTxnId'] ?? null,
-            'identifier' => $payload['statusUrl'] ?? $gid,
+            'identifier' => $gid,
             'payment_id' => $gid,
             'data' => $payload,
         ];
@@ -395,6 +415,13 @@ class PayGlocalService implements PaymentGatewayContract
      * Confirmed against a real callback: signed (RS256/PKCS1v1.5) with the private key
      * counterpart to the PayGlocal public key we hold — same keypair used to encrypt our
      * outgoing requests, reused by PayGlocal to sign their callbacks back to us.
+     *
+     * The async merchant webhook (docs.payglocal.in/merchant/webhooks) has no such token —
+     * per PayGlocal's own docs, the only integrity check they describe for it is confirming
+     * the payload's merchantId matches ours. That's genuinely all there is; it's not a
+     * shortcut around a signature we're skipping. handleGatewayCallback() never trusts this
+     * result alone regardless — verifyTransaction() re-checks the outcome server-to-server
+     * right after, which is the real safety net for this path.
      */
     public function verifyCallbackAuthenticity(array $data, Request $request): bool
     {
@@ -403,8 +430,17 @@ class PayGlocalService implements PaymentGatewayContract
         $token = $request->input('x-gl-token');
 
         if (!$token) {
-            Log::warning('PayGlocal: Missing x-gl-token field on callback');
-            return false;
+            $merchantId = $data['merchantId'] ?? null;
+
+            if (!$merchantId || $merchantId !== $this->merchantId) {
+                Log::warning('PayGlocal: Webhook merchantId mismatch or missing', [
+                    'merchant_txn_id' => $data['merchantTxnId'] ?? null,
+                    'received_merchant_id' => $merchantId,
+                ]);
+                return false;
+            }
+
+            return true;
         }
 
         $parts = explode('.', $token);

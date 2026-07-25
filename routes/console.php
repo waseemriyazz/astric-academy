@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('payments:expire-stale')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('currencies:refresh-rates')->daily();
+Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')->everyMinute()->withoutOverlapping();
