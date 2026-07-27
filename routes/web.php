@@ -71,6 +71,14 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::post('/gateways/{gateway}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'update'])->name('gateways.update');
     Route::get('/gateways/{gateway}/reveal/{field}', [\App\Http\Controllers\Admin\AdminPaymentGatewayController::class, 'reveal'])->name('gateways.reveal');
 
+    // Plans
+    Route::get('/plans', [\App\Http\Controllers\Admin\AdminPlanController::class, 'index'])->name('plans.index');
+    Route::get('/plans/create', [\App\Http\Controllers\Admin\AdminPlanController::class, 'create'])->name('plans.create');
+    Route::post('/plans', [\App\Http\Controllers\Admin\AdminPlanController::class, 'store'])->name('plans.store');
+    Route::get('/plans/{plan}/edit', [\App\Http\Controllers\Admin\AdminPlanController::class, 'edit'])->name('plans.edit');
+    Route::put('/plans/{plan}', [\App\Http\Controllers\Admin\AdminPlanController::class, 'update'])->name('plans.update');
+    Route::delete('/plans/{plan}', [\App\Http\Controllers\Admin\AdminPlanController::class, 'destroy'])->name('plans.destroy');
+
     // Payments
     Route::get('/payments', [\App\Http\Controllers\Admin\AdminPaymentController::class, 'index'])->name('payments.index');
     Route::get('/payments/{payment}', [\App\Http\Controllers\Admin\AdminPaymentController::class, 'show'])->name('payments.show');
