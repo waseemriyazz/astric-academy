@@ -20,6 +20,8 @@ class PaymentInitiateRequest extends FormRequest
             'buyer_email' => 'required|email|max:255',
             'buyer_phone' => 'required|string|max:20',
             'currency_code' => ['nullable', 'string', Rule::in(array_keys(config('currencies.rates')))],
+            'plan_ids' => ['nullable', 'array'],
+            'plan_ids.*' => ['integer', 'exists:plans,id'],
         ];
     }
 

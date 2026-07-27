@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Payment;
+use App\Models\Plan;
 use App\Models\User;
 use App\Notifications\CourseEnrolled;
 use App\Notifications\CoursePurchased;

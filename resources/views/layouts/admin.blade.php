@@ -47,9 +47,14 @@
                 <span class="font-semibold">Students</span>
             </a>
             
-            <a href="{{ route('admin.courses.index') }}" class="{{ request()->routeIs('admin.courses.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
-                <i class="fas fa-book w-5 text-center text-lg {{ request()->routeIs('admin.courses.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
+            <a href="{{ route('admin.courses.index') }}" class="{{ request()->routeIs('admin.courses.*') && !request()->routeIs('admin.plans.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+                <i class="fas fa-book w-5 text-center text-lg {{ request()->routeIs('admin.courses.*') && !request()->routeIs('admin.plans.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Courses</span>
+            </a>
+            
+            <a href="{{ route('admin.plans.index') }}" class="{{ request()->routeIs('admin.plans.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+                <i class="fas fa-layer-group w-5 text-center text-lg {{ request()->routeIs('admin.plans.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
+                <span class="font-semibold">Course Plans</span>
             </a>
             
             <a href="{{ route('admin.enrollments.index') }}" class="{{ request()->routeIs('admin.enrollments.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">

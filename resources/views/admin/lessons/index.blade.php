@@ -9,6 +9,26 @@
 @endsection
 
 @section('content')
+<!-- Plan Filter Bar -->
+<div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6">
+    <form method="GET" action="{{ route('admin.courses.lessons.index', $course->id) }}" class="flex items-center gap-4 flex-wrap">
+        <label for="plan_id" class="text-sm font-semibold text-gray-700">Filter by Plan:</label>
+        <select name="plan_id" id="plan_id" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+            <option value="">All Lessons (Course-level)</option>
+            @foreach($plans as $plan)
+                <option value="{{ $plan->id }}" {{ (string)$planId === (string)$plan->id ? 'selected' : '' }}>
+                    {{ $plan->tier_name }}
+                </option>
+            @endforeach
+        </select>
+        @if($planId)
+            <a href="{{ route('admin.courses.lessons.index', $course->id) }}" class="text-sm text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i> Clear
+            </a>
+        @endif
+    </form>
+</div>
+
 <div class="flex flex-col xl:flex-row gap-6">
     <!-- List of Lessons -->
     <div class="w-full xl:w-2/3">
@@ -25,6 +45,7 @@
                         <tr class="bg-white text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-100">
                             <th class="px-6 py-4 w-16">#</th>
                             <th class="px-6 py-4">Lesson Details</th>
+                            <th class="px-6 py-4">Plan</th>
                             <th class="px-6 py-4 text-center">Video</th>
                             <th class="px-6 py-4 text-center">Quiz</th>
                             <th class="px-6 py-4 text-right">Actions</th>
@@ -48,6 +69,15 @@
                                         </p>
                                     </div>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($lesson->plan)
+                                    <span class="inline-flex px-2.5 py-1 rounded bg-purple-50 text-purple-700 text-xs font-medium border border-purple-100/50">
+                                        {{ $lesson->plan->tier_name }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400 text-xs">Course-level</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($lesson->youtube_url)
@@ -90,7 +120,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-3 text-gray-400 border border-gray-100">
                                     <i class="fas fa-film text-xl"></i>
                                 </div>
@@ -124,6 +154,21 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Lesson Title *</label>
                     <input type="text" name="title" required value="{{ old('title') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="e.g. Introduction">
                     @error('title') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Plan Assignment -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Assign to Plan</label>
+                    <select name="plan_id" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
+                        <option value="">Course-level (all plans)</option>
+                        @foreach($plans as $plan)
+                            <option value="{{ $plan->id }}" {{ old('plan_id') == $plan->id ? 'selected' : '' }}>
+                                {{ $plan->tier_name }} (${{ number_format($plan->price, 0) }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Leave as "Course-level" if this lesson belongs to all plans.</p>
+                    @error('plan_id') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
                 
                 <div>

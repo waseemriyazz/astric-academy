@@ -82,6 +82,9 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                <a href="{{ route('admin.plans.index', ['course_id' => $course->id]) }}" class="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition" title="Manage Plans">
+                                    <i class="fas fa-layer-group text-sm"></i>
+                                </a>
                                 <a href="{{ route('admin.courses.lessons.index', $course->id) }}" class="w-7 h-7 rounded flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 transition" title="Manage Lessons">
                                     <i class="fas fa-book text-sm"></i>
                                 </a>
