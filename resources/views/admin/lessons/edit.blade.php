@@ -22,6 +22,21 @@
                 <input type="text" name="title" required value="{{ old('title', $lesson->title) }}" class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
                 @error('title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
             </div>
+
+            <!-- Plan Assignment -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Plan</label>
+                <select name="plan_id" class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Course-level (all plans)</option>
+                    @foreach($plans as $plan)
+                        <option value="{{ $plan->id }}" {{ old('plan_id', $lesson->plan_id) == $plan->id ? 'selected' : '' }}>
+                            {{ $plan->tier_name }} (${{ number_format($plan->price, 0) }})
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-gray-400">Leave as "Course-level" if this lesson belongs to all plans.</p>
+                @error('plan_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+            </div>
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">YouTube URL</label>

@@ -13,8 +13,12 @@ class AdminLessonController extends Controller
 {
     public function index(Course $course)
     {
-        $lessons = $course->lessons()->orderBy('order')->get();
-        return view('admin.lessons.index', compact('course', 'lessons'));
+        $planId = request('plan_id');
+        $lessons = $planId
+            ? $course->lessons()->where('plan_id', $planId)->orderBy('order')->get()
+            : $course->lessons()->orderBy('order')->get();
+        $plans = $course->plans;
+        return view('admin.lessons.index', compact('course', 'lessons', 'plans', 'planId'));
     }
 
     public function store(Request $request, Course $course)
@@ -27,6 +31,7 @@ class AdminLessonController extends Controller
             'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
             'order' => 'nullable|integer',
+            'plan_id' => 'nullable|integer|exists:plans,id',
             'quiz_question' => 'nullable|string',
             'quiz_option_a' => 'nullable|string',
             'quiz_option_b' => 'nullable|string',
@@ -66,7 +71,8 @@ class AdminLessonController extends Controller
 
     public function edit(Course $course, Lesson $lesson)
     {
-        return view('admin.lessons.edit', compact('course', 'lesson'));
+        $plans = $course->plans;
+        return view('admin.lessons.edit', compact('course', 'lesson', 'plans'));
     }
 
     public function update(Request $request, Course $course, Lesson $lesson)
@@ -79,6 +85,7 @@ class AdminLessonController extends Controller
             'vimeo_url' => 'nullable|string',
             'duration' => 'nullable|string|max:50',
             'order' => 'nullable|integer',
+            'plan_id' => 'nullable|integer|exists:plans,id',
             'quiz_question' => 'nullable|string',
             'quiz_option_a' => 'nullable|string',
             'quiz_option_b' => 'nullable|string',
