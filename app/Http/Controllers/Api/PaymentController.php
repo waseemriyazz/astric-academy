@@ -8,6 +8,7 @@ use App\Http\Requests\PaymentInitiateRequest;
 use App\Models\Course;
 use App\Models\Payment;
 use App\Models\PaymentGatewayConfig;
+use App\Models\Plan;
 use App\Models\User;
 use App\Services\EasebuzzService;
 use App\Services\PayGlocalService;
@@ -51,6 +52,19 @@ class PaymentController extends Controller
         ]);
 
         $course = Course::findOrFail($request->course_id);
+
+        // Resolve selected plans
+        $planIds = $request->input('plan_ids', []);
+        $plans = collect();
+        if (!empty($planIds)) {
+            $plans = Plan::whereIn('id', $planIds)->where('course_id', $course->id)->get();
+            if ($plans->count() !== count($planIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'One or more selected plans are invalid.',
+                ], 400);
+            }
+        }
 
         // Check if user already exists
         $existingUser = User::where('email', $request->buyer_email)->first();
@@ -164,6 +178,7 @@ class PaymentController extends Controller
             'currency' => $currencyCode,
             'gateway' => $gatewayName,
             'status' => Payment::STATUS_PENDING,
+            'gateway_response' => !empty($planIds) ? ['plan_ids' => $planIds] : null,
         ]);
 
         Log::info('PAYMENT: DB record created', [

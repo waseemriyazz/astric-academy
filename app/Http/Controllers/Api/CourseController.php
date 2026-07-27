@@ -9,7 +9,7 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::orderBy('category')->orderBy('title')->get();
+        $courses = Course::withCount('plans')->orderBy('category')->orderBy('title')->get();
 
         return response()->json([
             'data' => $courses->map(function ($course) {
@@ -23,6 +23,7 @@ class CourseController extends Controller
                     'price_max' => (float) $course->price_max,
                     'features' => $course->features ?? [],
                     'duration' => $course->duration,
+                    'plans_count' => $course->plans_count,
                     'created_at' => $course->created_at,
                 ];
             }),
@@ -31,6 +32,8 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
+        $course->loadCount('plans');
+
         return response()->json([
             'data' => [
                 'id' => $course->id,
@@ -42,6 +45,7 @@ class CourseController extends Controller
                 'price_max' => (float) $course->price_max,
                 'features' => $course->features ?? [],
                 'duration' => $course->duration,
+                'plans_count' => $course->plans_count,
                 'created_at' => $course->created_at,
             ],
         ]);
