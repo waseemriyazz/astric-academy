@@ -6,11 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lesson extends Model
 {
-    protected $fillable = ['course_id', 'title', 'description', 'summary', 'youtube_url', 'vimeo_url', 'duration', 'order'];
+    protected $fillable = ['course_id', 'plan_id', 'title', 'description', 'summary', 'youtube_url', 'vimeo_url', 'duration', 'order'];
 
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
     }
 
     public function quiz()

@@ -39,4 +39,9 @@ class Course extends Model
     {
         return $this->hasMany(Certificate::class);
     }
+
+    public function plans()
+    {
+        return $this->hasMany(Plan::class)->orderBy('sort_order');
+    }
 }

@@ -76,6 +76,13 @@ class Payment extends Model
         return $this->status === self::STATUS_PENDING;
     }
 
+    public function plans()
+    {
+        return $this->belongsToMany(Plan::class, 'payment_plan')
+            ->withPivot('price')
+            ->withTimestamps();
+    }
+
     public function currencySymbol(): string
     {
         return config('currencies.symbols')[$this->currency] ?? $this->currency . ' ';
