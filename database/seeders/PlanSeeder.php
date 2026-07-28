@@ -620,6 +620,12 @@ class PlanSeeder extends Seeder
 
                 $createdCount++;
             }
+
+            // Remove stale tiers (e.g. leftover "Pro" plans from the old generic seeder)
+            // that are no longer part of this course's real tier list.
+            Plan::where('course_id', $course->id)
+                ->whereNotIn('tier_name', collect($data['tiers'])->pluck('tier_name'))
+                ->delete();
         }
 
         if (! empty($skippedCourses)) {
