@@ -53,9 +53,17 @@ class PaymentController extends Controller
 
         $course = Course::findOrFail($request->course_id);
 
-        // Resolve selected plans
+        // Resolve which plan(s) this payment is for, and the USD amount to charge.
+        //
+        // Two flows share this endpoint:
+        //  - Explicit plan selection (CoursePlans.jsx "choose one or more tiers"): charge
+        //    the sum of the selected plans' prices — never trust a client-sent amount here.
+        //  - Custom amount (Enroll.jsx "pay any amount up to the max"): charge exactly what
+        //    the buyer typed (already bounds-checked below), and auto-assign the highest
+        //    tier whose price fits within it, falling back to the cheapest tier otherwise.
         $planIds = $request->input('plan_ids', []);
         $plans = collect();
+
         if (!empty($planIds)) {
             $plans = Plan::whereIn('id', $planIds)->where('course_id', $course->id)->get();
             if ($plans->count() !== count($planIds)) {
@@ -63,6 +71,31 @@ class PaymentController extends Controller
                     'success' => false,
                     'message' => 'One or more selected plans are invalid.',
                 ], 400);
+            }
+            $amountUsd = (float) $plans->sum('price');
+        } else {
+            $amountUsd = (float) $request->input('amount');
+            $maxPayable = (float) $course->price_max;
+
+            if ($amountUsd <= 0 || $amountUsd > $maxPayable) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Please enter an amount between 1 and {$maxPayable}.",
+                ], 400);
+            }
+
+            $resolvedPlan = $course->plans()
+                ->where('is_active', true)
+                ->orderByDesc('price')
+                ->get()
+                ->first(fn (Plan $plan) => (float) $plan->price <= $amountUsd);
+
+            if (!$resolvedPlan) {
+                $resolvedPlan = $course->plans()->where('is_active', true)->orderBy('price')->first();
+            }
+
+            if ($resolvedPlan) {
+                $plans = collect([$resolvedPlan]);
             }
         }
 
@@ -158,7 +191,6 @@ class PaymentController extends Controller
         // Live rates refreshed daily by currencies:refresh-rates; static config is only
         // the fallback for a cold cache or a failed refresh.
         $rates = Cache::get('currency_rates', config('currencies.rates'));
-        $amountUsd = (float) $course->price_max;
         $amount = round($amountUsd * ($rates[$currencyCode] ?? $rates['INR']), 2);
 
         Log::info('PAYMENT: Price calculated', [
@@ -178,8 +210,12 @@ class PaymentController extends Controller
             'currency' => $currencyCode,
             'gateway' => $gatewayName,
             'status' => Payment::STATUS_PENDING,
-            'gateway_response' => !empty($planIds) ? ['plan_ids' => $planIds] : null,
+            'gateway_response' => $plans->isNotEmpty() ? ['plan_ids' => $plans->pluck('id')->all()] : null,
         ]);
+
+        if ($plans->isNotEmpty()) {
+            $payment->plans()->attach($plans->mapWithKeys(fn (Plan $plan) => [$plan->id => ['price' => $plan->price]]));
+        }
 
         Log::info('PAYMENT: DB record created', [
             'payment_id' => $payment->id,

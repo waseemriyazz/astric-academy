@@ -32,7 +32,7 @@ class User extends Authenticatable
 
     public function courses()
     {
-        return $this->belongsToMany(Course::class);
+        return $this->belongsToMany(Course::class)->withPivot('plan_id');
     }
 
     public function quizAttempts()
@@ -64,10 +64,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Enroll the user in a course. Idempotent — won't duplicate.
+     * Enroll the user in a course, optionally tagging which pricing tier they were
+     * assigned. Idempotent — won't duplicate.
      */
-    public function enrollIn(Course $course): void
+    public function enrollIn(Course $course, ?int $planId = null): void
     {
-        $this->courses()->syncWithoutDetaching([$course->id]);
+        $this->courses()->syncWithoutDetaching([$course->id => ['plan_id' => $planId]]);
     }
 }
