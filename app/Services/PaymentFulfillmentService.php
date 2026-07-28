@@ -43,7 +43,8 @@ class PaymentFulfillmentService
                 ]),
             ]);
 
-            $user->enrollIn($course);
+            $planId = $payment->plans()->first()?->id;
+            $user->enrollIn($course, $planId);
 
             DB::commit();
 

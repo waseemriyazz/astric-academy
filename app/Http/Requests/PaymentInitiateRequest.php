@@ -22,6 +22,7 @@ class PaymentInitiateRequest extends FormRequest
             'currency_code' => ['nullable', 'string', Rule::in(array_keys(config('currencies.rates')))],
             'plan_ids' => ['nullable', 'array'],
             'plan_ids.*' => ['integer', 'exists:plans,id'],
+            'amount' => ['nullable', 'numeric', 'min:1'],
         ];
     }
 
@@ -35,6 +36,8 @@ class PaymentInitiateRequest extends FormRequest
             'buyer_email.email' => 'Please provide a valid email address.',
             'buyer_phone.required' => 'Phone number is required.',
             'currency_code.in' => 'The selected currency is not supported.',
+            'amount.numeric' => 'The amount must be a valid number.',
+            'amount.min' => 'The amount must be greater than zero.',
         ];
     }
 }
