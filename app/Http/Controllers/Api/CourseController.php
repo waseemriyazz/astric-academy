@@ -16,6 +16,7 @@ class CourseController extends Controller
                 return [
                     'id' => $course->id,
                     'title' => $course->title,
+                    'slug' => $course->slug,
                     'category' => $course->category,
                     'icon_name' => $course->icon_name,
                     'description' => $course->description,
@@ -38,6 +39,7 @@ class CourseController extends Controller
             'data' => [
                 'id' => $course->id,
                 'title' => $course->title,
+                'slug' => $course->slug,
                 'category' => $course->category,
                 'icon_name' => $course->icon_name,
                 'description' => $course->description,

@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Course extends Model
 {
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'price',
         'tools_count',
@@ -24,6 +26,29 @@ class Course extends Model
         'features' => 'array',
         'certificate_config' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Course $course) {
+            if (! $course->slug) {
+                $course->slug = static::generateUniqueSlug($course->title);
+            }
+        });
+    }
+
+    protected static function generateUniqueSlug(string $title): string
+    {
+        $base = Str::slug($title);
+        $slug = $base;
+        $suffix = 2;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
+    }
 
     public function users()
     {
