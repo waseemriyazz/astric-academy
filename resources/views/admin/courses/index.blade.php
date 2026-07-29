@@ -3,14 +3,14 @@
 @section('header', 'Manage Courses')
 
 @section('header_actions')
-<a href="{{ route('admin.courses.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
+<a href="{{ route('admin.courses.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
     <i class="fas fa-plus"></i> Add New Course
 </a>
 @endsection
 
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
         <div class="flex items-center gap-3 relative z-10">
             <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/50">
                 <i class="fas fa-book-open text-lg"></i>
@@ -25,7 +25,7 @@
 
 <div class="w-full">
     <!-- List of Courses -->
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
             <h3 class="text-base font-bold text-gray-900">Course Master</h3>
         </div>

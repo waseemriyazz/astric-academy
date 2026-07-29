@@ -3,28 +3,28 @@
 @section('header', 'Manage Students')
 
 @section('header_actions')
-<button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
+<button class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
     <i class="fas fa-plus"></i> Add Student
 </button>
 @endsection
 
 @section('content')
 <!-- Filter bar -->
-<div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+<div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
     <div class="relative w-full sm:w-96">
         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <i class="fas fa-search text-gray-400 text-sm"></i>
         </div>
-        <input type="text" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 transition placeholder-gray-400" placeholder="Search by student name or email...">
+        <input type="text" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-2xl text-sm focus:ring-blue-500 focus:border-blue-500 transition placeholder-gray-400" placeholder="Search by student name or email...">
     </div>
     <div class="flex items-center gap-3 w-full sm:w-auto">
-        <select class="w-full sm:w-auto border border-gray-200 rounded-lg text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
+        <select class="w-full sm:w-auto border border-gray-200 rounded-2xl text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
             <option>All Courses</option>
         </select>
-        <select class="w-full sm:w-auto border border-gray-200 rounded-lg text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none hidden sm:block">
+        <select class="w-full sm:w-auto border border-gray-200 rounded-2xl text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none hidden sm:block">
             <option>All Status</option>
         </select>
-        <button class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2 text-sm whitespace-nowrap">
+        <button class="px-4 py-2 border border-gray-200 text-gray-600 rounded-2xl font-medium hover:bg-gray-50 transition flex items-center gap-2 text-sm whitespace-nowrap">
             <i class="fas fa-filter text-gray-400"></i> Filters
         </button>
     </div>
@@ -32,7 +32,7 @@
 
 <div class="flex flex-col lg:flex-row gap-8">
     <!-- List of Students -->
-    <div class="w-full lg:w-2/3 bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
+    <div class="w-full lg:w-2/3 bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
         <div class="p-0 overflow-x-auto">
             <table class="w-full text-left border-collapse min-w-max">
                 <thead>
@@ -109,7 +109,7 @@
 
     <!-- Registration Form -->
     <div class="w-full lg:w-1/3">
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6 sticky top-6">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6 sticky top-6">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 shrink-0">
                     <i class="fas fa-user-plus text-sm"></i>
@@ -121,20 +121,20 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">Full Name</label>
-                    <input type="text" name="name" required class="w-full rounded-lg border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm">
+                    <input type="text" name="name" required class="w-full rounded-2xl border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm">
                     @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">Email Address</label>
-                    <input type="email" name="email" required class="w-full rounded-lg border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm">
+                    <input type="email" name="email" required class="w-full rounded-2xl border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm">
                     @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">Password</label>
                     <div class="relative">
-                        <input type="password" name="password" id="reg_password" required class="w-full rounded-lg border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm pr-10">
+                        <input type="password" name="password" id="reg_password" required class="w-full rounded-2xl border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 py-2 shadow-sm pr-10">
                         <button type="button" onclick="const p = document.getElementById('reg_password'); const i = this.querySelector('i'); if(p.type === 'password'){ p.type = 'text'; i.classList.remove('fa-eye-slash'); i.classList.add('fa-eye'); } else { p.type = 'password'; i.classList.remove('fa-eye'); i.classList.add('fa-eye-slash'); }" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
                             <i class="fas fa-eye-slash"></i>
                         </button>
@@ -146,7 +146,7 @@
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Assign Courses</label>
                     <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                         @foreach($courses as $course)
-                        <label class="flex items-start gap-3 p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-blue-50/50 hover:border-blue-100 transition group">
+                        <label class="flex items-start gap-3 p-3 border border-gray-100 rounded-2xl cursor-pointer hover:bg-blue-50/50 hover:border-blue-100 transition group">
                             <input type="checkbox" name="courses[]" value="{{ $course->id }}" class="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 shadow-sm">
                             <div>
                                 <p class="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition">{{ $course->title }}</p>
@@ -158,7 +158,7 @@
                     @error('courses') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-                <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-[0_2px_10px_rgb(37,99,235,0.2)] flex items-center justify-center gap-2">
+                <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-2xl transition shadow-[0_2px_10px_rgb(37,99,235,0.2)] flex items-center justify-center gap-2">
                     Register Student <i class="fas fa-arrow-right text-xs"></i>
                 </button>
             </form>

@@ -33,7 +33,7 @@
         }
 
         .certificate-border {
-            border: 4px double #6366f1;
+            border: 4px double #0aa2f5;
             border-radius: 6mm;
             padding: 7mm;
             width: 277mm;
@@ -42,7 +42,7 @@
         }
 
         .certificate-inner {
-            border: 1px solid #e0e7ff;
+            border: 1px solid #dcf0ff;
             border-radius: 4mm;
             padding: 8mm 10mm;
             width: 263mm;
@@ -52,13 +52,13 @@
         .header {
             text-align: center;
             padding-bottom: 5mm;
-            border-bottom: 1px solid #e0e7ff;
+            border-bottom: 1px solid #dcf0ff;
         }
 
         .header .icon {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: linear-gradient(135deg, #0aa2f5, #38c1ff);
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
@@ -70,7 +70,7 @@
 
         .header h1 {
             font-size: 20px;
-            color: #4338ca;
+            color: #005fa8;
             letter-spacing: 3px;
             font-weight: bold;
             margin-bottom: 2px;
@@ -97,7 +97,7 @@
         .body-content .divider {
             width: 50px;
             height: 2px;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            background: linear-gradient(90deg, #0aa2f5, #38c1ff);
             margin: 6px auto;
         }
 
@@ -110,7 +110,7 @@
         .body-content .course-name {
             font-size: 16px;
             font-weight: bold;
-            color: #4338ca;
+            color: #005fa8;
             margin-bottom: 8px;
         }
 
@@ -197,18 +197,18 @@
         .footer-section .seal-circle {
             width: 40px;
             height: 40px;
-            border: 2px solid #6366f1;
+            border: 2px solid #0aa2f5;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 2px;
-            background: #eef2ff;
+            background: #eefaff;
         }
 
         .footer-section .seal-circle .seal-icon {
             font-size: 14px;
-            color: #6366f1;
+            color: #0aa2f5;
         }
 
         .footer-section .seal-name {
@@ -281,7 +281,7 @@
                                 <div class="sig-line">
                                     <img src="{{ $logoPath }}" alt="Signature">
                                 </div>
-                                <div class="sig-name">Astryx Academy</div>
+                                <div class="sig-name">Skill Stryx</div>
                                 <div class="sig-title">Authorized Signature</div>
                             </td>
                             <td>
@@ -289,7 +289,7 @@
                                     <div class="seal-icon">&#9733;</div>
                                 </div>
                                 <div class="seal-name">Official Seal</div>
-                                <div class="seal-title">Astryx Academy</div>
+                                <div class="seal-title">Skill Stryx</div>
                             </td>
                         </tr>
                     </table>

@@ -10,7 +10,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
             <h4 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-palette text-indigo-600"></i>
+                <i class="fas fa-palette text-brand-600"></i>
                 Appearance
             </h4>
         </div>
@@ -18,10 +18,10 @@
         <div class="p-6">
             <p class="text-sm text-gray-600 mb-4">Customize how the application looks and feels.</p>
             
-            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-200">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-moon text-indigo-600 text-xl"></i>
+                    <div class="w-12 h-12 bg-brand-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-moon text-brand-600 text-xl"></i>
                     </div>
                     <div>
                         <h5 class="font-semibold text-gray-900 mb-1">Dark Mode</h5>
@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 
-                <button id="theme-toggle" class="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <button id="theme-toggle" class="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
                     <span id="theme-toggle-circle" class="inline-block h-6 w-6 transform rounded-full bg-white transition-transform translate-x-1 shadow-sm"></span>
                 </button>
             </div>
@@ -41,7 +41,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
             <h4 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-lock text-indigo-600"></i>
+                <i class="fas fa-lock text-brand-600"></i>
                 Change Password
             </h4>
         </div>
@@ -50,7 +50,7 @@
             <p class="text-sm text-gray-600 mb-4">Update your password to keep your account secure.</p>
             
             @if(session('status') === 'password-updated')
-                <div class="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 flex items-center gap-3 shadow-sm">
+                <div class="mb-6 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-700 flex items-center gap-3 shadow-sm">
                     <i class="fas fa-check-circle text-lg"></i>
                     <p class="font-medium">Password updated successfully!</p>
                 </div>
@@ -122,14 +122,14 @@
 
     <!-- Account Information Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8">
+        <div class="bg-gradient-to-r from-brand-600 to-cyan-500 px-6 py-8">
             <div class="flex items-center gap-6">
                 <div class="w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white text-3xl font-bold border-2 border-white/30">
                     {{ substr($user->name, 0, 1) }}
                 </div>
                 <div class="text-white">
                     <h3 class="text-2xl font-bold mb-1">{{ $user->name }}</h3>
-                    <p class="text-indigo-100 flex items-center gap-2">
+                    <p class="text-brand-100 flex items-center gap-2">
                         <i class="fas fa-envelope"></i>
                         {{ $user->email }}
                     </p>
@@ -139,22 +139,22 @@
         
         <div class="p-6">
             <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <i class="fas fa-info-circle text-indigo-600"></i>
+                <i class="fas fa-info-circle text-brand-600"></i>
                 Account Information
             </h4>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Full Name</p>
                     <p class="text-gray-900 font-medium">{{ $user->name }}</p>
                 </div>
                 
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Email Address</p>
                     <p class="text-gray-900 font-medium">{{ $user->email }}</p>
                 </div>
                 
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Account Type</p>
                     <p class="text-gray-900 font-medium capitalize">{{ $user->role ?? 'Student' }}</p>
                 </div>
@@ -162,7 +162,7 @@
             </div>
             
             <div class="mt-6 pt-6 border-t border-gray-200">
-                <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white font-semibold rounded-2xl hover:bg-brand-700 transition shadow-sm">
                     <i class="fas fa-edit"></i>
                     Edit Profile
                 </a>
@@ -182,7 +182,7 @@
         <div class="p-6">
             <p class="text-sm text-gray-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
             
-            <button onclick="event.preventDefault(); document.getElementById('delete-user-form').submit();" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition shadow-sm">
+            <button onclick="event.preventDefault(); document.getElementById('delete-user-form').submit();" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-2xl hover:bg-red-700 transition shadow-sm">
                 <i class="fas fa-trash-alt"></i>
                 Delete Account
             </button>
@@ -207,13 +207,13 @@
         if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
             themeToggle.classList.remove('bg-gray-200');
-            themeToggle.classList.add('bg-indigo-600');
+            themeToggle.classList.add('bg-brand-600');
             themeToggleCircle.classList.remove('translate-x-1');
             themeToggleCircle.classList.add('translate-x-7');
         } else {
             document.documentElement.removeAttribute('data-theme');
             themeToggle.classList.add('bg-gray-200');
-            themeToggle.classList.remove('bg-indigo-600');
+            themeToggle.classList.remove('bg-brand-600');
             themeToggleCircle.classList.add('translate-x-1');
             themeToggleCircle.classList.remove('translate-x-7');
         }

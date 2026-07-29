@@ -3,17 +3,17 @@
 @section('header', 'Manage Lessons: ' . $course->title)
 
 @section('header_actions')
-<a href="{{ route('admin.courses.index') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
+<a href="{{ route('admin.courses.index') }}" class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
     <i class="fas fa-arrow-left"></i> Back to Courses
 </a>
 @endsection
 
 @section('content')
 <!-- Plan Filter Bar -->
-<div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6">
+<div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6">
     <form method="GET" action="{{ route('admin.courses.lessons.index', $course->id) }}" class="flex items-center gap-4 flex-wrap">
         <label for="plan_id" class="text-sm font-semibold text-gray-700">Filter by Plan:</label>
-        <select name="plan_id" id="plan_id" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+        <select name="plan_id" id="plan_id" onchange="this.form.submit()" class="border border-gray-200 rounded-2xl px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
             <option value="">All Lessons (Course-level)</option>
             @foreach($plans as $plan)
                 <option value="{{ $plan->id }}" {{ (string)$planId === (string)$plan->id ? 'selected' : '' }}>
@@ -32,11 +32,11 @@
 <div class="flex flex-col xl:flex-row gap-6">
     <!-- List of Lessons -->
     <div class="w-full xl:w-2/3">
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
             
             <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
                 <h3 class="text-base font-bold text-gray-900">Curriculum</h3>
-                <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold uppercase tracking-wider">{{ $lessons->count() }} Lessons</span>
+                <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-2xl text-xs font-semibold uppercase tracking-wider">{{ $lessons->count() }} Lessons</span>
             </div>
             
             <div class="p-0 overflow-x-auto">
@@ -59,7 +59,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 font-bold shadow-sm">
+                                    <div class="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 font-bold shadow-sm">
                                         <i class="fas fa-book-open text-sm"></i>
                                     </div>
                                     <div>
@@ -137,9 +137,9 @@
 
     <!-- Create Lesson Form -->
     <div class="w-full xl:w-1/3">
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6 sticky top-8">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6 sticky top-8">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
                     <i class="fas fa-plus text-lg"></i>
                 </div>
                 <div>
@@ -152,14 +152,14 @@
                 @csrf
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Lesson Title *</label>
-                    <input type="text" name="title" required value="{{ old('title') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="e.g. Introduction">
+                    <input type="text" name="title" required value="{{ old('title') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="e.g. Introduction">
                     @error('title') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Plan Assignment -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Assign to Plan</label>
-                    <select name="plan_id" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
+                    <select name="plan_id" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
                         <option value="">Course-level (all plans)</option>
                         @foreach($plans as $plan)
                             <option value="{{ $plan->id }}" {{ old('plan_id') == $plan->id ? 'selected' : '' }}>
@@ -175,7 +175,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">YouTube URL</label>
                     <div class="relative flex items-center">
                         <div class="absolute left-3 text-red-500"><i class="fab fa-youtube"></i></div>
-                        <input type="url" name="youtube_url" value="{{ old('youtube_url') }}" class="w-full pl-9 pr-3 py-2 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://youtube.com/...">
+                        <input type="url" name="youtube_url" value="{{ old('youtube_url') }}" class="w-full pl-9 pr-3 py-2 rounded-2xl border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://youtube.com/...">
                     </div>
                     @error('youtube_url') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -184,7 +184,7 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Vimeo URL</label>
                     <div class="relative flex items-center">
                         <div class="absolute left-3 text-blue-400"><i class="fab fa-vimeo"></i></div>
-                        <input type="url" name="vimeo_url" value="{{ old('vimeo_url') }}" class="w-full pl-9 pr-3 py-2 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://vimeo.com/...">
+                        <input type="url" name="vimeo_url" value="{{ old('vimeo_url') }}" class="w-full pl-9 pr-3 py-2 rounded-2xl border-gray-200 bg-gray-50 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="https://vimeo.com/...">
                     </div>
                     @error('vimeo_url') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
@@ -192,32 +192,32 @@
                 <div class="flex gap-4">
                     <div class="w-1/2">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Duration</label>
-                        <input type="text" name="duration" value="{{ old('duration') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="e.g. 15 mins">
+                        <input type="text" name="duration" value="{{ old('duration') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" placeholder="e.g. 15 mins">
                         @error('duration') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                     </div>
                     <div class="w-1/2">
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Sort Order</label>
-                        <input type="number" name="order" value="{{ old('order', 0) }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
+                        <input type="number" name="order" value="{{ old('order', 0) }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm">
                         @error('order') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                    <textarea name="description" rows="3" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm resize-none" placeholder="What will they learn?">{{ old('description') }}</textarea>
+                    <textarea name="description" rows="3" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm resize-none" placeholder="What will they learn?">{{ old('description') }}</textarea>
                     @error('description') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Summary <span class="text-gray-400 font-normal">(Optional) <span class="text-indigo-400 text-[10px] font-medium">Supports Markdown</span></span></label>
-                    <textarea name="summary" rows="2" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm resize-none" placeholder="Brief overview or key takeaways... You can use **bold**, *italic*, - lists, ## headings, etc.">{{ old('summary') }}</textarea>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Summary <span class="text-gray-400 font-normal">(Optional) <span class="text-brand-400 text-[10px] font-medium">Supports Markdown</span></span></label>
+                    <textarea name="summary" rows="2" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-blue-500 focus:border-blue-500 transition shadow-sm resize-none" placeholder="Brief overview or key takeaways... You can use **bold**, *italic*, - lists, ## headings, etc.">{{ old('summary') }}</textarea>
                     @error('summary') <p class="mt-1 text-xs font-semibold text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Quiz Section -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <div class="flex items-center gap-2 mb-4">
-                        <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                        <div class="w-8 h-8 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600">
                             <i class="fas fa-question-circle text-sm"></i>
                         </div>
                         <h4 class="text-sm font-bold text-gray-900">Quiz (Optional)</h4>
@@ -226,29 +226,29 @@
                     <div class="space-y-3">
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Question</label>
-                            <input type="text" name="quiz_question" value="{{ old('quiz_question') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="e.g. What is 2 + 2?">
+                            <input type="text" name="quiz_question" value="{{ old('quiz_question') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="e.g. What is 2 + 2?">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Option A</label>
-                                <input type="text" name="quiz_option_a" value="{{ old('quiz_option_a') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option A">
+                                <input type="text" name="quiz_option_a" value="{{ old('quiz_option_a') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option A">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Option B</label>
-                                <input type="text" name="quiz_option_b" value="{{ old('quiz_option_b') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option B">
+                                <input type="text" name="quiz_option_b" value="{{ old('quiz_option_b') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option B">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Option C</label>
-                                <input type="text" name="quiz_option_c" value="{{ old('quiz_option_c') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option C">
+                                <input type="text" name="quiz_option_c" value="{{ old('quiz_option_c') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option C">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Option D</label>
-                                <input type="text" name="quiz_option_d" value="{{ old('quiz_option_d') }}" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option D">
+                                <input type="text" name="quiz_option_d" value="{{ old('quiz_option_d') }}" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm" placeholder="Option D">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Correct Answer</label>
-                            <select name="quiz_correct_answer" class="w-full rounded-lg border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+                            <select name="quiz_correct_answer" class="w-full rounded-2xl border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
                                 <option value="">-- Select --</option>
                                 <option value="a" {{ old('quiz_correct_answer') == 'a' ? 'selected' : '' }}>A</option>
                                 <option value="b" {{ old('quiz_correct_answer') == 'b' ? 'selected' : '' }}>B</option>
@@ -259,7 +259,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2 text-sm">
+                <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-2xl transition shadow-sm flex items-center justify-center gap-2 text-sm">
                     <i class="fas fa-plus"></i>
                     <span>Add Lesson</span>
                 </button>

@@ -3,7 +3,7 @@
 @section('header', 'Payment Details')
 
 @section('header_actions')
-<a href="{{ route('admin.payments.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition flex items-center gap-2 text-sm">
+<a href="{{ route('admin.payments.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-2xl font-medium hover:bg-gray-50 transition flex items-center gap-2 text-sm">
     <i class="fas fa-arrow-left"></i> Back to Payments
 </a>
 @endsection
@@ -23,7 +23,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Transaction ID</p>
@@ -42,7 +42,7 @@
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Gateway</p>
                     <p class="text-gray-900 font-semibold flex items-center gap-1.5">
-                        <i class="fas {{ $payment->gateway === 'payglocal' ? 'fa-globe' : 'fa-bolt' }} text-indigo-500 text-xs"></i>
+                        <i class="fas {{ $payment->gateway === 'payglocal' ? 'fa-globe' : 'fa-bolt' }} text-brand-500 text-xs"></i>
                         {{ ucfirst($payment->gateway) }}
                     </p>
                 </div>
@@ -61,16 +61,16 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
             <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <i class="fas fa-code text-gray-400"></i> Raw Gateway Response
             </h3>
-            <pre class="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 overflow-x-auto max-h-[420px] overflow-y-auto">{{ json_encode($payment->gateway_response, JSON_PRETTY_PRINT) }}</pre>
+            <pre class="bg-gray-900 text-gray-100 text-xs rounded-2xl p-4 overflow-x-auto max-h-[420px] overflow-y-auto">{{ json_encode($payment->gateway_response, JSON_PRETTY_PRINT) }}</pre>
         </div>
     </div>
 
     <div class="space-y-6">
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
             <h3 class="text-sm font-bold text-gray-900 mb-4">Buyer</h3>
             <div class="space-y-3 text-sm">
                 <div>
@@ -87,7 +87,7 @@
                 </div>
                 @if($payment->user)
                 <div class="pt-2 border-t border-gray-100">
-                    <a href="{{ route('admin.users.edit', $payment->user) }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center gap-1.5">
+                    <a href="{{ route('admin.users.edit', $payment->user) }}" class="text-brand-600 hover:text-brand-700 text-sm font-medium flex items-center gap-1.5">
                         <i class="fas fa-user"></i> View student account
                     </a>
                 </div>
@@ -97,11 +97,11 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-6">
             <h3 class="text-sm font-bold text-gray-900 mb-4">Course</h3>
             @if($payment->course)
                 <p class="text-gray-900 font-medium mb-1">{{ $payment->course->title }}</p>
-                <a href="{{ route('admin.courses.edit', $payment->course) }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center gap-1.5 mt-2">
+                <a href="{{ route('admin.courses.edit', $payment->course) }}" class="text-brand-600 hover:text-brand-700 text-sm font-medium flex items-center gap-1.5 mt-2">
                     <i class="fas fa-book"></i> View course
                 </a>
             @else

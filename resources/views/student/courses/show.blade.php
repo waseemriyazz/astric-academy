@@ -2,7 +2,7 @@
 
 @section('header')
 <div class="flex items-center gap-3">
-    <a href="{{ route('student.dashboard') }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:border-indigo-200 transition shadow-sm">
+    <a href="{{ route('student.dashboard') }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-600 hover:border-brand-200 transition shadow-sm">
         <i class="fas fa-arrow-left"></i>
     </a>
     <div>
@@ -106,7 +106,7 @@
                     @php
                         $durationFormatted = preg_match('/^[0-9]+$/', $activeLesson->duration) ? $activeLesson->duration . ' min' : (preg_match('/^[0-9]+:[0-9]+$/', $activeLesson->duration) ? $activeLesson->duration . ' min' : $activeLesson->duration);
                     @endphp
-                    <div class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold">
+                    <div class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gray-100 text-gray-700 text-xs font-semibold">
                         <i class="far fa-clock" style="font-family: 'Font Awesome 6 Free'; font-weight: 400;"></i> {{ $durationFormatted }}
                     </div>
                 @endif
@@ -114,11 +114,11 @@
 
             @if($activeLesson->description)
                 <!-- Description preview with modal trigger -->
-                <div id="description-box" class="mt-4 bg-gray-50 rounded-xl p-4 transition">
+                <div id="description-box" class="mt-4 bg-gray-50 rounded-2xl p-4 transition">
                     <div id="lesson-description"
                          class="desc-collapsed text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">{{ $activeLesson->description }}</div>
                     <button type="button" onclick="openDescriptionModal()"
-                            class="mt-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition inline-flex items-center gap-1.5">
+                            class="mt-2 text-sm font-semibold text-brand-600 hover:text-brand-700 transition inline-flex items-center gap-1.5">
                         Read Full Description <i class="fas fa-arrow-right text-[10px]"></i>
                     </button>
                 </div>
@@ -126,7 +126,7 @@
              {{-- Lesson Quiz card --}}
             @if($activeLesson->quiz)
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mt-4" id="quiz-section-wrapper">
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50">
                         <div class="flex items-center gap-3">
                             <div class="w-7 h-7 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
                                 <i class="fas fa-bolt text-xs"></i>
@@ -141,7 +141,7 @@
    class="btn-view-result inline-flex items-center justify-center gap-2
           px-4 py-2.5 sm:px-5 sm:py-3
           text-white text-sm sm:text-base
-          font-semibold rounded-xl
+          font-semibold rounded-2xl
           transition shadow-sm
           w-full sm:w-auto"
    style="background-color: #16a34a !important;">
@@ -154,7 +154,7 @@
                                             px-4 py-2.5 sm:px-5 sm:py-3
                                             bg-purple-600 hover:bg-purple-700
                                             text-white text-sm sm:text-base
-                                            font-semibold rounded-xl
+                                            font-semibold rounded-2xl
                                             transition shadow-sm
                                             w-full sm:w-auto">
                                         <i class="fas fa-play text-sm sm:text-base"></i>
@@ -208,14 +208,14 @@
                         <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}"
                            data-lesson-id="{{ $lesson->id }}"
                            data-index="{{ $loop->index }}"
-                           class="block p-3 rounded-xl border transition-all duration-200 group relative overflow-hidden {{ $isActive ? 'bg-indigo-50 border-indigo-200 shadow-[0_2px_8px_rgb(79,70,229,0.1)]' : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200' }}">
+                           class="block p-3 rounded-2xl border transition-all duration-200 group relative overflow-hidden {{ $isActive ? 'bg-brand-50 border-brand-200 shadow-[0_2px_8px_rgb(10,162,245,0.12)]' : 'bg-white border-transparent hover:bg-gray-50 hover:border-gray-200' }}">
 
                            @if($isActive)
-                               <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600"></div>
+                               <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-600"></div>
                            @endif
 
                             <div class="flex items-start gap-3 pl-1">
-                                <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center {{ $isCompleted ? 'bg-green-100 text-green-600' : ($isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-500') }} transition-colors">
+                                <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center {{ $isCompleted ? 'bg-green-100 text-green-600' : ($isActive ? 'bg-brand-100 text-brand-600' : 'bg-gray-100 text-gray-400 group-hover:bg-brand-50 group-hover:text-brand-500') }} transition-colors">
                                     @if($isCompleted)
                                         <i class="fas fa-check text-xs"></i>
                                     @elseif($isActive)
@@ -225,11 +225,11 @@
                                     @endif
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h4 class="text-sm font-semibold truncate {{ $isActive ? 'text-indigo-900' : 'text-gray-900 group-hover:text-indigo-700' }} transition-colors">
+                                    <h4 class="text-sm font-semibold truncate {{ $isActive ? 'text-brand-900' : 'text-gray-900 group-hover:text-brand-700' }} transition-colors">
                                         {{ $lesson->title }}
                                     </h4>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-[10px] uppercase font-bold tracking-wider {{ $isActive ? 'text-indigo-500' : 'text-gray-400' }}">
+                                        <span class="text-[10px] uppercase font-bold tracking-wider {{ $isActive ? 'text-brand-500' : 'text-gray-400' }}">
                                             @if($lesson->youtube_url || $lesson->vimeo_url) Video @else Text @endif
                                         </span>
                                         @if($lesson->duration)
@@ -258,7 +258,7 @@
                                 '{{ addslashes($lesson->title) }}'
                             )"
                             data-index="{{ $loop->index }}"
-                            class="block w-full text-left p-3 rounded-xl border border-gray-100 bg-gray-50/50 cursor-pointer opacity-70 hover:opacity-100 hover:bg-gray-100 transition-all duration-200 group"
+                            class="block w-full text-left p-3 rounded-2xl border border-gray-100 bg-gray-50/50 cursor-pointer opacity-70 hover:opacity-100 hover:bg-gray-100 transition-all duration-200 group"
                             title="Complete the current lesson to unlock this one">
                             <div class="flex items-start gap-3 pl-1">
                                 <div class="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
@@ -302,8 +302,8 @@
             {{-- Key Takeaways (summary) card --}}
             @if($activeLesson->summary)
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="flex items-center gap-3 p-4 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+                <div class="flex items-center gap-3 p-4 border-b border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50">
+                    <div class="w-8 h-8 rounded-2xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-600 shrink-0">
                         <i class="fas fa-list-check text-sm"></i>
                     </div>
                     <div class="min-w-0">
@@ -315,7 +315,7 @@
                 <div class="text-sm text-gray-600 leading-relaxed break-words">
                     {!! \Illuminate\Support\Str::markdown(\Illuminate\Support\Str::limit($activeLesson->summary, 180)) !!}
                 </div>
-                    <button onclick="openSummaryModal()" class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                    <button onclick="openSummaryModal()" class="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 transition">
                         Read Full Summary
                         <i class="fas fa-arrow-right text-[10px]"></i>
                     </button>
@@ -338,7 +338,7 @@
 <div id="summary-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4">
     <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white shrink-0">
+        <div class="bg-gradient-to-r from-brand-600 to-cyan-500 p-5 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -346,7 +346,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-lg">Key Takeaways</h3>
-                        <p class="text-sm text-indigo-200">Full lesson summary</p>
+                        <p class="text-sm text-brand-200">Full lesson summary</p>
                     </div>
                 </div>
                 <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
@@ -365,7 +365,7 @@
         <!-- Modal Footer -->
         <div class="p-4 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-end">
             <button onclick="closeSummaryModal()"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-2xl transition shadow-sm">
                 <i class="fas fa-check"></i> Got it
             </button>
         </div>
@@ -405,7 +405,7 @@
         <!-- Modal Footer -->
         <div class="p-4 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-end">
             <button onclick="closeDescriptionModal()"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold rounded-2xl transition shadow-sm">
                 <i class="fas fa-check"></i> Got it
             </button>
         </div>
@@ -445,7 +445,7 @@
             </div>
 
             <!-- Prerequisite info box -->
-            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
                         <i class="fas fa-play text-xs text-gray-500"></i>
@@ -460,11 +460,11 @@
             <!-- Actions -->
             <div class="flex flex-col gap-2">
                 <a id="locked-modal-go-btn" href="#"
-                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
+                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-2xl transition shadow-sm">
                     <i class="fas fa-arrow-right"></i> Go to Current Lesson
                 </a>
                 <button onclick="closeLockedModal()"
-                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg transition">
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-2xl transition">
                     Close
                 </button>
             </div>
@@ -477,7 +477,7 @@
 <div id="quiz-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden transition-all duration-300 p-4" onclick="if(event.target===this)closeQuizModal()">
     <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 text-white shrink-0">
+        <div class="bg-gradient-to-r from-cyan-500 to-brand-600 p-5 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -500,23 +500,23 @@
             <p class="text-sm text-gray-500 mb-6">Select the correct answer below</p>
 
             <div id="quiz-options" class="space-y-3">
-                <button onclick="submitQuizAnswer('a')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="a">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">A</span>
+                <button onclick="submitQuizAnswer('a')" class="quiz-option w-full text-left p-4 rounded-2xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="a">
+                    <span class="w-8 h-8 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">A</span>
                     <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_a }}</span>
                     <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
-                <button onclick="submitQuizAnswer('b')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="b">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">B</span>
+                <button onclick="submitQuizAnswer('b')" class="quiz-option w-full text-left p-4 rounded-2xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="b">
+                    <span class="w-8 h-8 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">B</span>
                     <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_b }}</span>
                     <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
-                <button onclick="submitQuizAnswer('c')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="c">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">C</span>
+                <button onclick="submitQuizAnswer('c')" class="quiz-option w-full text-left p-4 rounded-2xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="c">
+                    <span class="w-8 h-8 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">C</span>
                     <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_c }}</span>
                     <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
-                <button onclick="submitQuizAnswer('d')" class="quiz-option w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="d">
-                    <span class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">D</span>
+                <button onclick="submitQuizAnswer('d')" class="quiz-option w-full text-left p-4 rounded-2xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all duration-200 flex items-center gap-4 group" data-option="d">
+                    <span class="w-8 h-8 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-200 shrink-0">D</span>
                     <span class="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition flex-1">{{ $activeLesson->quiz->option_d }}</span>
                     <i class="fas fa-mouse-pointer text-gray-300 group-hover:text-purple-600 transition shrink-0"></i>
                 </button>
@@ -596,7 +596,7 @@ function submitQuizAnswer(answer) {
             let certificateHtml = '';
             if (data.certificate_generated) {
                 certificateHtml = `
-                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
                                 <i class="fas fa-award text-yellow-600"></i>
@@ -606,21 +606,21 @@ function submitQuizAnswer(answer) {
                                 <p class="text-xs text-yellow-600">You've completed all lessons! Your certificate is ready.</p>
                             </div>
                         </div>
-                        <a href="${data.certificate_url}" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-lg transition">
+                        <a href="${data.certificate_url}" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-semibold rounded-2xl transition">
                             <i class="fas fa-download"></i> Download Certificate
                         </a>
                     </div>
                 `;
             }
             feedback.innerHTML = `
-                <div class="p-4 bg-green-50 border border-green-200 rounded-xl text-center">
+                <div class="p-4 bg-green-50 border border-green-200 rounded-2xl text-center">
                     <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-check-circle text-2xl text-green-600"></i>
                     </div>
                     <h4 class="text-lg font-bold text-green-800 mb-1">Correct!</h4>
                     <p class="text-sm text-green-600 mb-4">Great job! You've unlocked the next lesson.</p>
                     ${certificateHtml}
-                    <button onclick="closeQuizModal()" class="mt-3 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition text-sm">
+                    <button onclick="closeQuizModal()" class="mt-3 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition text-sm">
                         <i class="fas fa-arrow-right"></i> Continue
                     </button>
                 </div>
@@ -629,7 +629,7 @@ function submitQuizAnswer(answer) {
             document.querySelector('.take-quiz-btn')?.remove();
             document.querySelector('.quiz-section-actions')?.innerHTML = `
                 <a href="{{ route('student.quizzes.result', [$course->id, $activeLesson->id, 'PLACEHOLDER']) }}"
-                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow-sm w-full">
+                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-2xl transition shadow-sm w-full">
                    <i class="fas fa-eye"></i> View Result
                 </a>
             `;
@@ -646,14 +646,14 @@ function submitQuizAnswer(answer) {
             document.querySelector(`.quiz-option[data-option="${answer}"]`).classList.add('border-red-500', 'bg-red-50');
 
             feedback.innerHTML = `
-                <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-center">
+                <div class="p-4 bg-red-50 border border-red-200 rounded-2xl text-center">
                     <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-times-circle text-2xl text-red-600"></i>
                     </div>
                     <h4 class="text-lg font-bold text-red-800 mb-1">Better luck next time!</h4>
                     <p class="text-sm text-red-600 mb-2">The correct answer was: <strong>${correctLetter}. ${correctText}</strong></p>
                     <p class="text-xs text-red-500 mb-4">You've unlocked the next lesson. Keep learning!</p>
-                    <button onclick="closeQuizModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
+                    <button onclick="closeQuizModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition text-sm">
                         <i class="fas fa-arrow-right"></i> Continue
                     </button>
                 </div>
@@ -665,9 +665,9 @@ function submitQuizAnswer(answer) {
         document.getElementById('quiz-loading').classList.add('hidden');
         document.getElementById('quiz-feedback').classList.remove('hidden');
         document.getElementById('quiz-feedback').innerHTML = `
-            <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-center">
+            <div class="p-4 bg-red-50 border border-red-200 rounded-2xl text-center">
                 <p class="text-sm text-red-600">Something went wrong. Please try again.</p>
-                <button onclick="openQuizModal()" class="mt-3 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
+                <button onclick="openQuizModal()" class="mt-3 px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition text-sm">
                     Try Again
                 </button>
             </div>
@@ -688,7 +688,7 @@ function submitQuizAnswer(answer) {
 
     <!-- Floating Chat Button -->
     <button id="chat-toggle-btn"
-            class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center"
+            class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-brand-600 to-cyan-500 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center"
             onclick="toggleChat()">
         <i id="chat-icon" class="fas fa-comment-dots text-xl"></i>
     </button>
@@ -698,7 +698,7 @@ function submitQuizAnswer(answer) {
          class="fixed bottom-24 right-6 z-50 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 opacity-0 invisible scale-95 origin-bottom-right">
 
         <!-- Chat Header -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white shrink-0">
+        <div class="bg-gradient-to-r from-brand-600 to-cyan-500 p-4 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
@@ -718,8 +718,8 @@ function submitQuizAnswer(answer) {
         <!-- Chat Messages -->
         <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <i class="fas fa-robot text-xs text-indigo-600"></i>
+                <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="fas fa-robot text-xs text-brand-600"></i>
                 </div>
                 <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
                     <div class="text-sm text-gray-700 leading-relaxed chat-markdown">Hi! I'm your AI tutor. Ask me anything about this lesson — I can help clarify concepts, answer questions, or provide additional explanations based on the course material.</div>
@@ -733,12 +733,12 @@ function submitQuizAnswer(answer) {
                 <input type="text"
                        id="chat-input"
                        placeholder="Ask a question..."
-                       class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                       class="flex-1 rounded-2xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
                        maxlength="2000"
                        autocomplete="off">
                 <button type="submit"
                         id="chat-send-btn"
-                        class="w-10 h-10 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition shadow-sm">
+                        class="w-10 h-10 rounded-2xl bg-brand-600 text-white hover:bg-brand-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition shadow-sm">
                     <i class="fas fa-paper-plane text-sm"></i>
                 </button>
             </form>
@@ -812,22 +812,22 @@ function submitQuizAnswer(answer) {
     @apply italic;
 }
 .summary-markdown code {
-    @apply bg-gray-100 text-sm px-1.5 py-0.5 rounded text-indigo-600 font-mono;
+    @apply bg-gray-100 text-sm px-1.5 py-0.5 rounded text-brand-600 font-mono;
 }
 .summary-markdown pre {
-    @apply bg-gray-900 text-gray-100 rounded-xl p-4 mb-4 overflow-x-auto text-sm font-mono leading-relaxed;
+    @apply bg-gray-900 text-gray-100 rounded-2xl p-4 mb-4 overflow-x-auto text-sm font-mono leading-relaxed;
 }
 .summary-markdown pre code {
     @apply bg-transparent p-0 text-gray-100;
 }
 .summary-markdown blockquote {
-    @apply border-l-4 border-indigo-300 pl-4 py-1 mb-3 text-gray-600 italic bg-indigo-50/50 rounded-r-lg;
+    @apply border-l-4 border-brand-300 pl-4 py-1 mb-3 text-gray-600 italic bg-brand-50/50 rounded-r-lg;
 }
 .summary-markdown hr {
     @apply border-gray-200 my-4;
 }
 .summary-markdown a {
-    @apply text-indigo-600 hover:text-indigo-700 underline;
+    @apply text-brand-600 hover:text-brand-700 underline;
 }
 </style>
 <script>
@@ -939,10 +939,10 @@ async function sendMessage(event) {
     const userDiv = document.createElement('div');
     userDiv.className = 'flex items-start gap-3 justify-end';
     userDiv.innerHTML = `
-        <div class="bg-indigo-600 rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-[85%]">
+        <div class="bg-brand-600 rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-[85%]">
             <p class="text-sm text-white leading-relaxed">${escapeHtml(message)}</p>
         </div>
-        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+        <div class="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center shrink-0 mt-0.5">
             <i class="fas fa-user text-xs text-white"></i>
         </div>
     `;
@@ -955,14 +955,14 @@ async function sendMessage(event) {
     loadingDiv.id = 'chat-loading';
     loadingDiv.className = 'flex items-start gap-3';
     loadingDiv.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
-            <i class="fas fa-robot text-xs text-indigo-600"></i>
+        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fas fa-robot text-xs text-brand-600"></i>
         </div>
         <div class="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-gray-100">
             <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style="animation-delay: 0s"></div>
-                <div class="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 0.15s"></div>
-                <div class="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" style="animation-delay: 0.3s"></div>
+                <div class="w-2 h-2 rounded-full bg-brand-400 animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 rounded-full bg-brand-500 animate-bounce" style="animation-delay: 0.15s"></div>
+                <div class="w-2 h-2 rounded-full bg-brand-600 animate-bounce" style="animation-delay: 0.3s"></div>
             </div>
         </div>
     `;
@@ -988,8 +988,8 @@ async function sendMessage(event) {
         const botDiv = document.createElement('div');
         botDiv.className = 'flex items-start gap-3';
         botDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fas fa-robot text-xs text-indigo-600"></i>
+            <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fas fa-robot text-xs text-brand-600"></i>
             </div>
             <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
                 <div class="text-sm text-gray-700 leading-relaxed chat-markdown">${renderMarkdown(data.reply || 'Sorry, I could not generate a response.')}</div>
@@ -1053,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const playlist = document.getElementById('lesson-playlist');
     if (!playlist) return;
 
-    const activeItem = playlist.querySelector('.bg-indigo-50.border-indigo-200');
+    const activeItem = playlist.querySelector('.bg-brand-50.border-brand-200');
     if (!activeItem) return;
 
     const allItems = playlist.querySelectorAll('[data-index]');
@@ -1093,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Footer Support Contact -->
 <div class="mt-6 pt-4 border-t border-gray-200">
-    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+    <div class="bg-gradient-to-br from-blue-50 to-brand-50 border border-blue-200 rounded-2xl p-4 shadow-sm">
         <div class="flex items-center justify-center gap-3">
             <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                 <i class="fas fa-headset text-blue-600"></i>
@@ -1101,8 +1101,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="flex-1 min-w-0 text-center">
                 <h4 class="text-sm font-bold text-gray-900 mb-1">Need Help?</h4>
                 <p class="text-xs text-gray-600 mb-2">Experiencing issues with the course?</p>
-                <a href="mailto:support@astryxacademy.com"
-                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                <a href="mailto:support@skillstryx.com"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 transition">
                     <i class="fas fa-envelope"></i>
                     Contact Support
                 </a>

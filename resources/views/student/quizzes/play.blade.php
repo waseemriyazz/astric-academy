@@ -2,7 +2,7 @@
 
 @section('header')
 <div class="flex items-center gap-3">
-    <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:border-indigo-200 transition shadow-sm">
+    <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-600 hover:border-brand-200 transition shadow-sm">
         <i class="fas fa-arrow-left"></i>
     </a>
     <div>
@@ -16,7 +16,7 @@
 <div class="max-w-3xl mx-auto">
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         <!-- Quiz Header -->
-        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+        <div class="bg-gradient-to-r from-cyan-500 to-brand-600 p-6 text-white">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
                     <i class="fas fa-question-circle text-2xl"></i>
@@ -43,20 +43,20 @@
 
             <!-- Quiz Options -->
             <div id="quiz-options" class="space-y-3">
-                <button onclick="submitQuizAnswer('a')" class="quiz-option w-full text-left p-5 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="a">
-                    <span class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">A</span>
+                <button onclick="submitQuizAnswer('a')" class="quiz-option w-full text-left p-5 rounded-2xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="a">
+                    <span class="w-10 h-10 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">A</span>
                     <span class="text-base text-gray-700 font-medium">{{ $quiz->option_a }}</span>
                 </button>
-                <button onclick="submitQuizAnswer('b')" class="quiz-option w-full text-left p-5 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="b">
-                    <span class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">B</span>
+                <button onclick="submitQuizAnswer('b')" class="quiz-option w-full text-left p-5 rounded-2xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="b">
+                    <span class="w-10 h-10 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">B</span>
                     <span class="text-base text-gray-700 font-medium">{{ $quiz->option_b }}</span>
                 </button>
-                <button onclick="submitQuizAnswer('c')" class="quiz-option w-full text-left p-5 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="c">
-                    <span class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">C</span>
+                <button onclick="submitQuizAnswer('c')" class="quiz-option w-full text-left p-5 rounded-2xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="c">
+                    <span class="w-10 h-10 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">C</span>
                     <span class="text-base text-gray-700 font-medium">{{ $quiz->option_c }}</span>
                 </button>
-                <button onclick="submitQuizAnswer('d')" class="quiz-option w-full text-left p-5 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="d">
-                    <span class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">D</span>
+                <button onclick="submitQuizAnswer('d')" class="quiz-option w-full text-left p-5 rounded-2xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 flex items-center gap-4 group" data-option="d">
+                    <span class="w-10 h-10 rounded-2xl bg-gray-100 text-gray-600 font-bold text-sm flex items-center justify-center group-hover:bg-purple-100 group-hover:text-purple-600 transition">D</span>
                     <span class="text-base text-gray-700 font-medium">{{ $quiz->option_d }}</span>
                 </button>
             </div>
@@ -114,14 +114,14 @@ async function submitQuizAnswer(answer) {
 
         if (data.is_correct) {
             feedback.innerHTML = `
-                <div class="p-6 bg-green-50 border border-green-200 rounded-xl text-center">
+                <div class="p-6 bg-green-50 border border-green-200 rounded-2xl text-center">
                     <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-check-circle text-4xl text-green-600"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-green-800 mb-2">Correct!</h3>
                     <p class="text-sm text-green-600 mb-6">Great job! You answered correctly.</p>
                     <div class="flex items-center justify-center gap-3">
-                        <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition text-sm">
+                        <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-2xl transition text-sm">
                             <i class="fas fa-arrow-left"></i> Back to Course
                         </a>
                     </div>
@@ -136,7 +136,7 @@ async function submitQuizAnswer(answer) {
             document.querySelector(`.quiz-option[data-option="${answer}"]`).classList.add('border-red-500', 'bg-red-50');
 
             feedback.innerHTML = `
-                <div class="p-6 bg-red-50 border border-red-200 rounded-xl text-center">
+                <div class="p-6 bg-red-50 border border-red-200 rounded-2xl text-center">
                     <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-times-circle text-4xl text-red-600"></i>
                     </div>
@@ -144,7 +144,7 @@ async function submitQuizAnswer(answer) {
                     <p class="text-sm text-red-600 mb-2">The correct answer was:</p>
                     <p class="text-lg font-bold text-red-700 mb-6">${correctLetter}. ${correctText}</p>
                     <div class="flex items-center justify-center">
-                        <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
+                        <a href="{{ route('student.courses.show', [$course->id, $lesson->id]) }}" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition text-sm">
                             <i class="fas fa-arrow-left"></i> Back to Course
                         </a>
                     </div>
@@ -156,13 +156,13 @@ async function submitQuizAnswer(answer) {
         document.getElementById('quiz-loading').classList.add('hidden');
         document.getElementById('quiz-feedback').classList.remove('hidden');
         document.getElementById('quiz-feedback').innerHTML = `
-            <div class="p-6 bg-red-50 border border-red-200 rounded-xl text-center">
+            <div class="p-6 bg-red-50 border border-red-200 rounded-2xl text-center">
                 <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-exclamation-triangle text-4xl text-red-600"></i>
                 </div>
                 <h3 class="text-xl font-bold text-red-800 mb-2">Something went wrong</h3>
                 <p class="text-sm text-red-600 mb-6">Please try again later.</p>
-                <button onclick="location.reload()" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm">
+                <button onclick="location.reload()" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition text-sm">
                     <i class="fas fa-redo"></i> Try Again
                 </button>
             </div>
