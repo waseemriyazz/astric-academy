@@ -85,6 +85,16 @@
                     <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Phone</p>
                     <p class="text-gray-900">{{ $payment->buyer_phone }}</p>
                 </div>
+                @if($payment->billing_address_line1)
+                <div class="pt-2 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Billing Address</p>
+                    <p class="text-gray-900">
+                        {{ $payment->billing_address_line1 }}{{ $payment->billing_address_line2 ? ', ' . $payment->billing_address_line2 : '' }}<br>
+                        {{ collect([$payment->billing_city, $payment->billing_state, $payment->billing_postal_code])->filter()->implode(', ') }}<br>
+                        {{ $payment->billing_country }}
+                    </p>
+                </div>
+                @endif
                 @if($payment->user)
                 <div class="pt-2 border-t border-gray-100">
                     <a href="{{ route('admin.users.edit', $payment->user) }}" class="text-brand-600 hover:text-brand-700 text-sm font-medium flex items-center gap-1.5">
