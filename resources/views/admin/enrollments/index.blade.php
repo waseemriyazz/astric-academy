@@ -3,7 +3,7 @@
 @section('header', 'Enrolled Courses')
 
 @section('header_actions')
-<a href="{{ route('admin.enrollments.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
+<a href="{{ route('admin.enrollments.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
     <i class="fas fa-plus"></i> Add Enrollment
 </a>
 @endsection
@@ -11,7 +11,7 @@
 @section('content')
 <!-- Stats Overview -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
         <div class="flex items-center gap-3 relative z-10">
             <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/50">
                 <i class="fas fa-layer-group text-lg"></i>
@@ -23,7 +23,7 @@
         </div>
     </div>
     
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
         <div class="flex items-center gap-3 relative z-10">
             <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100/50">
                 <i class="fas fa-check-circle text-lg"></i>
@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
         <div class="flex items-center gap-3 relative z-10">
             <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/50">
                 <i class="fas fa-award text-lg"></i>
@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 relative overflow-hidden group">
         <div class="flex items-center gap-3 relative z-10">
             <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-100/50">
                 <i class="fas fa-ban text-lg"></i>
@@ -62,21 +62,21 @@
 
 <div class="w-full">
     <!-- Filters and Table -->
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
         
         <div class="p-6 border-b border-gray-100 bg-gray-50/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="relative w-full md:w-96">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm" placeholder="Search by student name or course...">
+                <input type="text" class="w-full pl-10 pr-4 py-2 rounded-2xl border-gray-200 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm" placeholder="Search by student name or course...">
             </div>
             
             <div class="flex gap-3">
-                <select class="rounded-lg border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2 px-3 pr-8">
+                <select class="rounded-2xl border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2 px-3 pr-8">
                     <option>All Courses</option>
                 </select>
-                <select class="rounded-lg border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2 px-3 pr-8">
+                <select class="rounded-2xl border-gray-200 text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm py-2 px-3 pr-8">
                     <option>Status: All</option>
                 </select>
             </div>

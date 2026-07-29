@@ -49,7 +49,7 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-300">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+                <div class="w-14 h-14 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-200">
                     <i class="fas fa-book-open text-2xl text-white"></i>
                 </div>
                 <div>
@@ -57,14 +57,14 @@
                     <p class="text-3xl font-bold text-gray-900 mt-1">{{ $totalCourses }}</p>
                 </div>
             </div>
-            <div class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold">
+            <div class="px-3 py-1.5 bg-brand-50 text-brand-600 rounded-full text-xs font-bold">
                 Active
             </div>
         </div>
         <div class="mt-4 pt-4 border-t border-gray-100">
             <div class="flex items-center justify-between text-xs text-gray-400">
                 <span><i class="fas fa-graduation-cap mr-1"></i> Total enrolled courses</span>
-                <span class="text-blue-600 font-semibold">{{ $totalCourses }} course{{ $totalCourses !== 1 ? 's' : '' }}</span>
+                <span class="text-brand-600 font-semibold">{{ $totalCourses }} course{{ $totalCourses !== 1 ? 's' : '' }}</span>
             </div>
         </div>
     </div>
@@ -112,7 +112,7 @@
         --border: 220 13% 91%;
         --radius: 1rem;
 
-        --chart-1: 239 84% 67%;   /* indigo  — in progress */
+        --chart-1: 199 91% 50%;   /* brand blue — in progress */
         --chart-2: 258 90% 66%;   /* violet  — accent      */
         --chart-3: 160 84% 39%;   /* emerald — completed   */
         --chart-4: 220 13% 91%;   /* grey    — not started */
@@ -201,13 +201,13 @@
             </div>
 
             <div class="grid w-full grid-cols-2 gap-3">
-                <div class="rounded-xl border sc-border px-3 py-2.5">
+                <div class="rounded-2xl border sc-border px-3 py-2.5">
                     <div class="flex items-center gap-2 sc-stat-label">
                         <span class="sc-swatch sc-swatch-progress"></span> Done
                     </div>
                     <p class="mt-1.5 text-lg font-bold tabular-nums">{{ $completedLessons }} <span class="text-xs font-medium sc-muted">lessons</span></p>
                 </div>
-                <div class="rounded-xl border sc-border px-3 py-2.5">
+                <div class="rounded-2xl border sc-border px-3 py-2.5">
                     <div class="flex items-center gap-2 sc-stat-label">
                         <span class="sc-swatch sc-swatch-track"></span> Left
                     </div>
@@ -254,12 +254,12 @@
 
 @if($courses->isEmpty())
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-3xl mx-auto mt-12">
-        <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-box-open text-4xl text-indigo-300"></i>
+        <div class="w-24 h-24 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-box-open text-4xl text-brand-300"></i>
         </div>
         <h3 class="text-2xl font-bold text-gray-900 mb-2">No active enrollments yet</h3>
         <p class="text-gray-500 mb-8 max-w-md mx-auto">You haven't been enrolled in any courses yet. When an administrator grants you access, your courses will appear here.</p>
-        <a href="https://astryxacademy.com/#courses" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition shadow-sm">
+        <a href="https://skillstryx.com/#courses" class="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-semibold rounded-2xl hover:bg-brand-700 transition shadow-sm">
             <span>Explore Course Catalog</span>
             <i class="fas fa-arrow-right text-sm"></i>
         </a>
@@ -269,14 +269,14 @@
         @foreach($courses as $course)
         <div class="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-200 overflow-hidden transition-all duration-300 flex flex-col group">
             {{-- Header with gradient --}}
-            <div class="h-48 bg-gradient-to-br from-indigo-500 to-purple-600 relative overflow-hidden flex-shrink-0 flex items-center justify-center p-6 text-center">
+            <div class="h-48 bg-gradient-to-br from-brand-600 to-cyan-500 relative overflow-hidden flex-shrink-0 flex items-center justify-center p-6 text-center">
                 <div class="absolute inset-0 bg-black/10"></div>
                 <div class="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
 
                 {{-- Price badge — top-left corner --}}
                 <div class="absolute top-4 left-4 z-10">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-sm
-                        {{ !is_null($course->price_max) && $course->price_max > 0 ? 'bg-white/90 backdrop-blur text-indigo-700' : 'bg-emerald-500/90 backdrop-blur text-white' }}">
+                        {{ !is_null($course->price_max) && $course->price_max > 0 ? 'bg-white/90 backdrop-blur text-brand-700' : 'bg-emerald-500/90 backdrop-blur text-white' }}">
                         <i class="fas fa-tag text-[10px]"></i>
                         @if(!is_null($course->price_max) && $course->price_max > 0)
                             ${{ number_format($course->price_max, 2) }}
@@ -319,7 +319,7 @@
                 {{-- Tools badge --}}
                 @if($course->tools_count > 0)
                     <div class="mb-2.5">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-widest border border-indigo-100">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-brand-50 text-brand-700 text-[10px] font-bold uppercase tracking-widest border border-brand-100">
                             <i class="fas fa-tools"></i> {{ $course->tools_count }} Tools Program
                         </span>
                     </div>
@@ -333,12 +333,12 @@
                 {{-- Meta row: lessons + tools count --}}
                 <div class="flex items-center gap-4 mb-5">
                     <div class="flex items-center gap-1.5 text-xs text-gray-500">
-                        <i class="fas fa-list-ul text-indigo-400"></i>
+                        <i class="fas fa-list-ul text-brand-400"></i>
                         <span class="font-medium">{{ $course->lessons->count() }} lesson{{ $course->lessons->count() !== 1 ? 's' : '' }}</span>
                     </div>
                     @if($course->tools_count > 0)
                         <div class="flex items-center gap-1.5 text-xs text-gray-500">
-                            <i class="fas fa-tools text-indigo-400"></i>
+                            <i class="fas fa-tools text-brand-400"></i>
                             <span class="font-medium">{{ $course->tools_count }} tool{{ $course->tools_count !== 1 ? 's' : '' }}</span>
                         </div>
                     @endif
@@ -352,14 +352,14 @@
                 <div class="mt-auto mb-5">
                     <div class="flex items-center justify-between text-xs font-semibold mb-2">
                         <span class="text-gray-400">Course Progress</span>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full {{ $pct == 100 ? 'bg-emerald-50 text-emerald-600' : ($pct > 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400') }}">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full {{ $pct == 100 ? 'bg-emerald-50 text-emerald-600' : ($pct > 0 ? 'bg-brand-50 text-brand-600' : 'bg-gray-50 text-gray-400') }}">
                             <i class="fas {{ $pct == 100 ? 'fa-check-circle' : ($pct > 0 ? 'fa-arrow-up' : 'fa-hourglass-start') }} text-[10px]"></i>
                             {{ $pct }}%
                         </span>
                     </div>
 
                     <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out" style="width: {{ $pct }}%"></div>
+                        <div class="h-full bg-gradient-to-r from-brand-500 to-cyan-400 rounded-full transition-all duration-700 ease-out" style="width: {{ $pct }}%"></div>
                     </div>
 
                     <div class="flex items-center justify-between mt-1.5">
@@ -380,7 +380,7 @@
                 </div>
 
                 {{-- Action --}}
-                <a href="{{ route('student.courses.show', $course->id) }}" class="block w-full text-center py-2.5 px-4 bg-gray-50 hover:bg-indigo-600 text-gray-700 hover:text-white font-semibold rounded-xl transition-all duration-300 border border-gray-200 hover:border-indigo-600 flex items-center justify-center gap-2 text-sm">
+                <a href="{{ route('student.courses.show', $course->id) }}" class="block w-full text-center py-2.5 px-4 bg-gray-50 hover:bg-brand-600 text-gray-700 hover:text-white font-semibold rounded-2xl transition-all duration-300 border border-gray-200 hover:border-brand-600 flex items-center justify-center gap-2 text-sm">
                     @if($pct == 100)
                         <i class="fas fa-redo"></i> Review Course
                     @elseif($pct > 0)

@@ -26,7 +26,7 @@ class EasebuzzService implements PaymentGatewayContract
      */
     public function generateTxnId(): string
     {
-        return 'ASTRX_' . str_replace('-', '', (string) Str::uuid());
+        return 'SKLTRX_' . str_replace('-', '', (string) Str::uuid());
     }
 
     /**

@@ -1,8 +1,8 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="300" alt="Laravel Logo"></a></p>
 
-# Astryx Academy — Backend
+# Skill Stryx — Backend
 
-Laravel backend for the Astryx Academy platform: courses, student portal, admin panel, and payment processing (Easebuzz + PayGlocal).
+Laravel backend for the Skill Stryx platform: courses, student portal, admin panel, and payment processing (Easebuzz + PayGlocal).
 
 This README is written for the whole team, not just people who already know Laravel — every command below explains **what it does** and **when you'd run it**, not just the command itself.
 

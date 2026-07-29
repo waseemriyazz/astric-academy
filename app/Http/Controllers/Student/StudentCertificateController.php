@@ -91,7 +91,7 @@ class StudentCertificateController extends Controller
         }
 
         $config = $course->certificate_config ?? [];
-        $logoPath = public_path('images/logo-1.jpeg');
+        $logoPath = public_path('images/logo-new.jpeg');
 
         $pdf = Pdf::loadView('pdf.certificate', [
             'certificate' => $certificate,

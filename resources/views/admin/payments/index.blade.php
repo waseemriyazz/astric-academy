@@ -24,21 +24,21 @@
         if (request('sort') !== $field) {
             return 'fa-sort text-gray-300';
         }
-        return request('direction') === 'asc' ? 'fa-sort-up text-indigo-600' : 'fa-sort-down text-indigo-600';
+        return request('direction') === 'asc' ? 'fa-sort-up text-brand-600' : 'fa-sort-down text-brand-600';
     };
 @endphp
 
 <!-- Summary stats -->
 <div class="flex flex-wrap gap-4 mb-6">
     @foreach($statusCounts as $status => $count)
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 px-5 py-4 min-w-[140px]">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 px-5 py-4 min-w-[140px]">
             <p class="text-xs font-semibold uppercase tracking-wider {{ explode(' ', $statusColors[$status] ?? 'text-gray-500')[1] ?? 'text-gray-500' }}">{{ ucfirst($status) }}</p>
             <p class="text-2xl font-bold text-gray-900 mt-1">{{ $count }}</p>
         </div>
     @endforeach
 
     @foreach($revenueByCurrency as $currency => $total)
-        <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 px-5 py-4 min-w-[160px]">
+        <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 px-5 py-4 min-w-[160px]">
             <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Paid Revenue &middot; {{ $currency }}</p>
             <p class="text-2xl font-bold text-gray-900 mt-1">{{ config('currencies.symbols')[$currency] ?? $currency . ' ' }}{{ number_format($total, 2) }}</p>
         </div>
@@ -46,23 +46,23 @@
 </div>
 
 <!-- Filter bar -->
-<form method="GET" action="{{ route('admin.payments.index') }}" class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6">
+<form method="GET" action="{{ route('admin.payments.index') }}" class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-4 mb-6">
     <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
         <div class="relative flex-1">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i class="fas fa-search text-gray-400 text-sm"></i>
             </div>
-            <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 transition placeholder-gray-400" placeholder="Search buyer name, email, txnid...">
+            <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-2xl text-sm focus:ring-blue-500 focus:border-blue-500 transition placeholder-gray-400" placeholder="Search buyer name, email, txnid...">
         </div>
 
-        <select name="gateway" onchange="this.form.requestSubmit()" class="border border-gray-200 rounded-lg text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
+        <select name="gateway" onchange="this.form.requestSubmit()" class="border border-gray-200 rounded-2xl text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
             <option value="">All Gateways</option>
             @foreach($gateways as $gateway)
                 <option value="{{ $gateway }}" {{ request('gateway') === $gateway ? 'selected' : '' }}>{{ ucfirst($gateway) }}</option>
             @endforeach
         </select>
 
-        <select name="status" onchange="this.form.requestSubmit()" class="border border-gray-200 rounded-lg text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
+        <select name="status" onchange="this.form.requestSubmit()" class="border border-gray-200 rounded-2xl text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
             <option value="">All Status</option>
             @foreach($statuses as $status)
                 <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
@@ -70,17 +70,17 @@
         </select>
 
         <div class="flex items-center gap-2">
-            <input type="date" name="date_from" value="{{ request('date_from') }}" class="border border-gray-200 rounded-lg text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
+            <input type="date" name="date_from" value="{{ request('date_from') }}" class="border border-gray-200 rounded-2xl text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
             <span class="text-gray-400 text-sm">to</span>
-            <input type="date" name="date_to" value="{{ request('date_to') }}" class="border border-gray-200 rounded-lg text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
+            <input type="date" name="date_to" value="{{ request('date_to') }}" class="border border-gray-200 rounded-2xl text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 text-gray-600 outline-none">
         </div>
 
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2 text-sm whitespace-nowrap">
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-medium hover:bg-blue-700 transition flex items-center gap-2 text-sm whitespace-nowrap">
             <i class="fas fa-filter"></i> Filter
         </button>
 
         @if(request()->anyFilled(['search', 'gateway', 'status', 'date_from', 'date_to']))
-            <a href="{{ route('admin.payments.index') }}" class="px-4 py-2 border border-gray-200 text-gray-500 rounded-lg font-medium hover:bg-gray-50 transition text-sm whitespace-nowrap">
+            <a href="{{ route('admin.payments.index') }}" class="px-4 py-2 border border-gray-200 text-gray-500 rounded-2xl font-medium hover:bg-gray-50 transition text-sm whitespace-nowrap">
                 Clear
             </a>
         @endif
@@ -89,7 +89,7 @@
 </form>
 
 <!-- Payments table -->
-<div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
+<div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse min-w-max">
             <thead>
@@ -123,7 +123,7 @@
                     </td>
                     <td class="px-6 py-4 text-gray-700">{{ $payment->course?->title ?? '—' }}</td>
                     <td class="px-6 py-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 border border-brand-100">
                             <i class="fas {{ $payment->gateway === 'payglocal' ? 'fa-globe' : 'fa-bolt' }} text-[10px]"></i>
                             {{ ucfirst($payment->gateway) }}
                         </span>

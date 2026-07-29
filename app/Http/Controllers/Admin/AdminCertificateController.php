@@ -159,7 +159,7 @@ class AdminCertificateController extends Controller
         $user = $certificate->user;
         $course = $certificate->course;
         $config = $course->certificate_config ?? [];
-        $logoPath = public_path('images/logo-1.jpeg');
+        $logoPath = public_path('images/logo-new.jpeg');
 
         $pdf = Pdf::loadView('pdf.certificate', [
             'certificate' => $certificate,
@@ -185,7 +185,7 @@ class AdminCertificateController extends Controller
 
         $course->update([
             'certificate_config' => [
-                'signature_name' => $request->signature_name ?? 'Astryx Academy',
+                'signature_name' => $request->signature_name ?? 'Skill Stryx',
                 'signature_title' => $request->signature_title ?? 'Authorized Signature',
             ],
         ]);

@@ -17,7 +17,7 @@ class FaqSeeder extends Seeder
             ],
             [
                 'question' => 'Do I get a certificate upon completion?',
-                'answer' => 'Yes, every graduate receives an industry-recognized certification verified by Astryx Academy.',
+                'answer' => 'Yes, every graduate receives an industry-recognized certification verified by Skill Stryx.',
                 'sort_order' => 2,
             ],
             [

@@ -3,17 +3,17 @@
 @section('header', 'Course Plans')
 
 @section('header_actions')
-<a href="{{ route('admin.plans.create', ['course_id' => request('course_id')]) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
+<a href="{{ route('admin.plans.create', ['course_id' => request('course_id')]) }}" class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-medium shadow-[0_2px_10px_rgb(37,99,235,0.2)] hover:bg-blue-700 transition flex items-center gap-2 text-sm">
     <i class="fas fa-plus"></i> Add New Plan
 </a>
 @endsection
 
 @section('content')
 <!-- Filter by Course -->
-<div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 mb-6">
+<div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 p-5 mb-6">
     <form method="GET" action="{{ route('admin.plans.index') }}" class="flex items-center gap-4">
         <label for="course_id" class="text-sm font-semibold text-gray-700">Filter by Course:</label>
-        <select name="course_id" id="course_id" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+        <select name="course_id" id="course_id" onchange="this.form.submit()" class="border border-gray-200 rounded-2xl px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
             <option value="">All Courses</option>
             @foreach($courses as $course)
                 <option value="{{ $course->id }}" {{ (string)$courseId === (string)$course->id ? 'selected' : '' }}>
@@ -30,7 +30,7 @@
 </div>
 
 <div class="w-full">
-    <div class="bg-white rounded-xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] border border-gray-100 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
             <h3 class="text-base font-bold text-gray-900">Plan Master</h3>
             <span class="text-sm text-gray-500">{{ $plans->total() }} plan(s)</span>

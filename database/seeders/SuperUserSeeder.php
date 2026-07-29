@@ -16,13 +16,13 @@ class SuperUserSeeder extends Seeder
         // Create super admin user
         User::create([
             'name' => 'Super Admin',
-            'email' => 'superadmin@astryxacademy.com',
+            'email' => 'superadmin@skillstryx.com',
             'password' => Hash::make('SuperAdmin@123'),
             'role' => 'admin',
         ]);
 
         $this->command->info('Super user created successfully!');
-        $this->command->info('Email: superadmin@astryxacademy.com');
+        $this->command->info('Email: superadmin@skillstryx.com');
         $this->command->info('Password: SuperAdmin@123');
     }
 }

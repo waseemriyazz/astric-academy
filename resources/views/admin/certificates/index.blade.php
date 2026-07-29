@@ -7,12 +7,12 @@
     <!-- Issue Certificate Form -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <i class="fas fa-award text-indigo-600"></i> Issue New Certificate
+            <i class="fas fa-award text-brand-600"></i> Issue New Certificate
         </h3>
         <form action="{{ route('admin.certificates.issue') }}" method="POST" class="flex flex-col sm:flex-row gap-3">
             @csrf
             <div class="flex-1">
-                <select name="user_id" required class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="user_id" required class="w-full rounded-2xl border-gray-300 focus:ring-brand-500 focus:border-brand-500">
                     <option value="">Select Student</option>
                     @foreach($students as $student)
                         <option value="{{ $student->id }}">{{ $student->name }} ({{ $student->email }})</option>
@@ -20,14 +20,14 @@
                 </select>
             </div>
             <div class="flex-1">
-                <select name="course_id" required class="w-full rounded-lg border-gray-300 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="course_id" required class="w-full rounded-2xl border-gray-300 focus:ring-brand-500 focus:border-brand-500">
                     <option value="">Select Course</option>
                     @foreach($courses as $course)
                         <option value="{{ $course->id }}">{{ $course->title }}</option>
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition shadow-sm shrink-0">
+            <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-2xl transition shadow-sm shrink-0">
                 <i class="fas fa-plus"></i> Issue Certificate
             </button>
         </form>
@@ -59,7 +59,7 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                    <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs">
                                         {{ substr($cert->user->name, 0, 1) }}
                                     </div>
                                     <div>
@@ -91,14 +91,14 @@
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <a href="{{ route('admin.certificates.download', $cert->id) }}" 
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-2xl transition">
                                         <i class="fas fa-download"></i> PDF
                                     </a>
                                     @if(!$cert->is_revoked)
                                         <form action="{{ route('admin.certificates.revoke', $cert->id) }}" method="POST" onsubmit="return confirm('Revoke this certificate?')">
                                             @csrf
                                             @method('PUT')
-                                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition">
+                                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-2xl transition">
                                                 <i class="fas fa-ban"></i> Revoke
                                             </button>
                                         </form>

@@ -1,7 +1,7 @@
 <section>
     <header>
         <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <i class="fas fa-user-edit text-indigo-600"></i>
+            <i class="fas fa-user-edit text-brand-600"></i>
             Profile Information
         </h2>
         <p class="mt-1 text-sm text-gray-600">
