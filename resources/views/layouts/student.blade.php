@@ -29,30 +29,33 @@
     
     <!-- Sidebar -->
     <aside class="w-64 bg-white text-gray-600 flex flex-col h-full shadow-[2px_0_10px_rgba(0,0,0,0.03)] border-r border-gray-100 z-20 transition-all duration-300">
-        
+
+        <!-- Brand accent -->
+        <div class="h-[3px] bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 shrink-0"></div>
+
         <!-- Logo Area -->
-        <div class="flex items-center justify-center h-[72px] px-6 border-b border-gray-100">
+        <div class="flex items-center justify-center h-[69px] px-6 border-b border-gray-100">
             <img src="{{ asset('images/logo-1.jpeg') }}" alt="Astryx Academy" class="h-10 object-contain mix-blend-multiply">
         </div>
-        
+
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto py-6 space-y-1.5 px-4 scrollbar-hide">
-            <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+            <a href="{{ route('student.dashboard') }}" class="{{ request()->routeIs('student.dashboard') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-home w-5 text-center text-lg {{ request()->routeIs('student.dashboard') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Dashboard</span>
             </a>
-            
-            <a href="{{ route('student.certificates.index') }}" class="{{ request()->routeIs('student.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('student.certificates.index') }}" class="{{ request()->routeIs('student.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-certificate w-5 text-center text-lg {{ request()->routeIs('student.certificates.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Certificates</span>
             </a>
-            
-            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-user-circle w-5 text-center text-lg {{ request()->routeIs('profile.edit') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Profile</span>
             </a>
-            
-            <a href="{{ route('student.settings') }}" class="{{ request()->routeIs('student.settings') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 border border-transparent">
+
+            <a href="{{ route('student.settings') }}" class="{{ request()->routeIs('student.settings') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 border border-transparent">
                 <i class="fas fa-cog w-5 text-center text-lg {{ request()->routeIs('student.settings') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Settings</span>
             </a>
@@ -74,7 +77,7 @@
     <div class="flex-1 flex flex-col h-full relative z-10 overflow-hidden bg-[#F8FAFC]">
         
         <!-- Top Header -->
-        <header class="h-[72px] bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-8 shadow-sm shrink-0">
+        <header class="h-[72px] bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-8 shadow-[0_1px_3px_rgba(79,70,229,0.06)] shrink-0">
             <!-- Left Header Area (Hamburger for mobile) -->
             <div class="flex items-center gap-4 flex-1">
                 <button class="text-gray-400 hover:text-gray-600 transition md:hidden">
@@ -113,7 +116,7 @@
                         <p class="text-sm font-semibold text-gray-800 leading-none mb-1">{{ Auth::user()->name }}</p>
                         <p class="text-xs text-gray-500 leading-none">Student</p>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shadow-sm border border-indigo-200">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shadow-sm border border-indigo-200 ring-2 ring-indigo-50">
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
                 </div>

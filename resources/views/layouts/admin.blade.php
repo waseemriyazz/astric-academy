@@ -29,60 +29,63 @@
     
     <!-- Sidebar -->
     <aside class="w-64 bg-white text-gray-600 flex flex-col h-full shadow-[2px_0_10px_rgba(0,0,0,0.03)] border-r border-gray-100 z-20 transition-all duration-300">
-        
+
+        <!-- Brand accent -->
+        <div class="h-[3px] bg-gradient-to-r from-indigo-600 via-purple-500 to-indigo-600 shrink-0"></div>
+
         <!-- Logo Area -->
-        <div class="flex items-center justify-center h-[72px] px-6 border-b border-gray-100">
+        <div class="flex items-center justify-center h-[69px] px-6 border-b border-gray-100">
             <img src="{{ asset('images/logo-1.jpeg') }}" alt="Astryx Academy" class="h-10 object-contain mix-blend-multiply">
         </div>
-        
+
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto py-6 space-y-1.5 px-4 scrollbar-hide">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-home w-5 text-center text-lg {{ request()->routeIs('admin.dashboard') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Dashboard</span>
             </a>
-            
-            <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-user-graduate w-5 text-center text-lg {{ request()->routeIs('admin.users.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Students</span>
             </a>
-            
-            <a href="{{ route('admin.courses.index') }}" class="{{ request()->routeIs('admin.courses.*') && !request()->routeIs('admin.plans.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.courses.index') }}" class="{{ request()->routeIs('admin.courses.*') && !request()->routeIs('admin.plans.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-book w-5 text-center text-lg {{ request()->routeIs('admin.courses.*') && !request()->routeIs('admin.plans.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Courses</span>
             </a>
-            
-            <a href="{{ route('admin.plans.index') }}" class="{{ request()->routeIs('admin.plans.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.plans.index') }}" class="{{ request()->routeIs('admin.plans.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-layer-group w-5 text-center text-lg {{ request()->routeIs('admin.plans.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Course Plans</span>
             </a>
-            
-            <a href="{{ route('admin.enrollments.index') }}" class="{{ request()->routeIs('admin.enrollments.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.enrollments.index') }}" class="{{ request()->routeIs('admin.enrollments.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-laptop-code w-5 text-center text-lg {{ request()->routeIs('admin.enrollments.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Enrolled Courses</span>
             </a>
-            
-            <a href="{{ route('admin.testimonials.index') }}" class="{{ request()->routeIs('admin.testimonials.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.testimonials.index') }}" class="{{ request()->routeIs('admin.testimonials.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-quote-right w-5 text-center text-lg {{ request()->routeIs('admin.testimonials.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Testimonials</span>
             </a>
-            
-            <a href="{{ route('admin.faqs.index') }}" class="{{ request()->routeIs('admin.faqs.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.faqs.index') }}" class="{{ request()->routeIs('admin.faqs.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-question-circle w-5 text-center text-lg {{ request()->routeIs('admin.faqs.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">FAQs</span>
             </a>
-            
-            <a href="{{ route('admin.certificates.index') }}" class="{{ request()->routeIs('admin.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+
+            <a href="{{ route('admin.certificates.index') }}" class="{{ request()->routeIs('admin.certificates.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-certificate w-5 text-center text-lg {{ request()->routeIs('admin.certificates.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Certificates</span>
             </a>
 
-            <a href="{{ route('admin.gateways.index') }}" class="{{ request()->routeIs('admin.gateways.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+            <a href="{{ route('admin.gateways.index') }}" class="{{ request()->routeIs('admin.gateways.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-credit-card w-5 text-center text-lg {{ request()->routeIs('admin.gateways.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Payment Gateways</span>
             </a>
 
-            <a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
+            <a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*') ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100 border-l-[3px] border-l-indigo-600 pl-[13px]' : 'hover:bg-gray-50 hover:text-gray-900 text-gray-500' }} flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200">
                 <i class="fas fa-receipt w-5 text-center text-lg {{ request()->routeIs('admin.payments.*') ? 'text-indigo-600' : 'text-gray-400' }}"></i>
                 <span class="font-semibold">Payments</span>
             </a>
@@ -104,7 +107,7 @@
     <div class="flex-1 flex flex-col h-full relative z-10 overflow-hidden bg-[#FAFAFA]">
         
         <!-- Top Header -->
-        <header class="h-[72px] bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-8 shadow-sm shrink-0">
+        <header class="h-[72px] bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-8 shadow-[0_1px_3px_rgba(79,70,229,0.06)] shrink-0">
             <!-- Left Header Area (Hamburger for mobile) -->
             <div class="flex items-center gap-4 flex-1">
                 <button class="text-gray-400 hover:text-gray-600 transition md:hidden">
@@ -144,7 +147,7 @@
                         <p class="text-sm font-semibold text-gray-800 leading-none mb-1">{{ Auth::user()->name }}</p>
                         <p class="text-xs text-gray-500 leading-none">Administrator</p>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold shadow-sm border border-blue-200">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold shadow-sm border border-blue-200 ring-2 ring-indigo-50">
                         {{ substr(Auth::user()->name, 0, 1) }}
                     </div>
                 </div>
