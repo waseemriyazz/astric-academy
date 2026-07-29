@@ -216,7 +216,7 @@ class PayGlocalService implements PaymentGatewayContract
                     'addressCity' => $params['address_city'] ?? 'NA',
                     'addressState' => $params['address_state'] ?? 'NA',
                     'addressPostalCode' => $params['address_postal_code'] ?? '000000',
-                    'addressCountry' => 'IN',
+                    'addressCountry' => $params['address_country'] ?? 'IN',
                     'emailId' => $params['email'],
                 ],
             ],
