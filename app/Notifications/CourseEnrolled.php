@@ -47,7 +47,7 @@ class CourseEnrolled extends Notification implements ShouldQueue
             ->line('---')
             ->line('You can now access your new course from your student dashboard.')
             ->action('Go to Your Dashboard', $loginUrl)
-            ->line('If you have any questions, feel free to contact our support team at support@astryxacademy.com.')
+            ->line('If you have any questions, feel free to contact our support team at support@skillstryx.com.')
             ->line('---')
             ->line('Best regards,')
             ->line('The ' . $appName . ' Team');

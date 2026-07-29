@@ -67,7 +67,7 @@ class LoginRequest extends FormRequest
             }
 
             throw ValidationException::withMessages([
-                'email' => 'You have not enrolled. Check courses at <a href="https://www.astryxacademy.com/#courses" target="_blank" class="font-semibold hover:underline text-indigo-700">www.astryxacademy.com</a>',
+                'email' => 'You have not enrolled. Check courses at <a href="https://www.skillstryx.com/#courses" target="_blank" class="font-semibold hover:underline text-indigo-700">www.skillstryx.com</a>',
             ]);
         }
 

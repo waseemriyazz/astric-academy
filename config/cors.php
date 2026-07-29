@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'https://astryxacademy.com')],
+    'allowed_origins' => [env('FRONTEND_URL', 'https://skillstryx.com')],
 
     /*
     |--------------------------------------------------------------------------
@@ -32,8 +32,8 @@ return [
     |
     */
     'allowed_origins_patterns' => [
-        '/^https?:\/\/(www\.)?astryxacademy\.com$/',
-        '/^https?:\/\/(www\.)?astryxacademy\.com:\d+$/',
+        '/^https?:\/\/(www\.)?skillstryx\.com$/',
+        '/^https?:\/\/(www\.)?skillstryx\.com:\d+$/',
     ],
 
     'allowed_headers' => ['*'],

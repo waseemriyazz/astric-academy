@@ -59,7 +59,7 @@ class CoursePurchased extends Notification implements ShouldQueue
 
         $mail->line('You can access your course materials and start learning from your student dashboard.')
             ->action('Login to Your Dashboard', $loginUrl)
-            ->line('If you have any questions, feel free to contact our support team at support@astryxacademy.com.')
+            ->line('If you have any questions, feel free to contact our support team at support@skillstryx.com.')
             ->line('---')
             ->line('Best regards,')
             ->line('The ' . $appName . ' Team');

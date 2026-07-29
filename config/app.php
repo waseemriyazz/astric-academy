@@ -156,7 +156,7 @@ return [
     |
     | This URL is used in email notifications for the login/dashboard link.
     | Dev: http://localhost:8000
-    | Prod: https://portal.astryxacademy.com
+    | Prod: https://portal.skillstryx.com
     |
     */
 
