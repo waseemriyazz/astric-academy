@@ -284,7 +284,10 @@ class PaymentController extends Controller
             'productinfo' => $productinfo,
             'firstname' => $request->buyer_name,
             'email' => $request->buyer_email,
-            'phone' => $request->buyer_phone,
+            // The frontend's PhoneInput emits "<dialCode> <number>" (e.g. "+91 7007120733")
+            // for display, but Easebuzz's phone regex has no allowance for whitespace —
+            // only an optional single dash after the country code. Strip to +/digits only.
+            'phone' => preg_replace('/[^\d+]/', '', (string) $request->buyer_phone),
             'surl' => config('app.payment_success_url'),
             'furl' => config('app.payment_failure_url'),
             'address1' => $request->billing_address_line1,
@@ -292,7 +295,11 @@ class PaymentController extends Controller
             'city' => $request->billing_city,
             'state' => $request->billing_state,
             'country' => $request->billing_country,
-            'zipcode' => $request->billing_postal_code,
+            // Easebuzz always settles in INR and rejects non-numeric zipcodes (e.g. UK/CA
+            // postal codes), even though billing address collection supports any country.
+            // zipcode is optional to Easebuzz, so strip to digits and omit it entirely
+            // rather than let a garbled/alpha postal code hard-fail the whole payment.
+            'zipcode' => preg_replace('/\D/', '', (string) $request->billing_postal_code),
             'udf1' => (string) $course->id,
             'udf2' => $payment->txnid,
             'udf3' => '',
