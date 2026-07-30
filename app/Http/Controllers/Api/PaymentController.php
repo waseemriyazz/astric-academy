@@ -278,6 +278,8 @@ class PaymentController extends Controller
         $productinfo = preg_replace('/[^a-zA-Z0-9\s\-|]/', '', $course->title);
         $productinfo = trim(substr($productinfo, 0, 45));
 
+        $zipDigits = preg_replace('/\D/', '', (string) $request->billing_postal_code);
+
         $params = [
             'txnid' => $payment->txnid,
             'amount' => number_format($amount, 2, '.', ''),
@@ -295,11 +297,17 @@ class PaymentController extends Controller
             'city' => $request->billing_city,
             'state' => $request->billing_state,
             'country' => $request->billing_country,
-            // Easebuzz always settles in INR and rejects non-numeric zipcodes (e.g. UK/CA
-            // postal codes), even though billing address collection supports any country.
-            // zipcode is optional to Easebuzz, so strip to digits and omit it entirely
-            // rather than let a garbled/alpha postal code hard-fail the whole payment.
-            'zipcode' => preg_replace('/\D/', '', (string) $request->billing_postal_code),
+            // Easebuzz always settles in INR and its live API rejects any zipcode that
+            // isn't a proper 6-digit PIN — confirmed in production against both an empty
+            // stripped value and a 7-digit one, both came back "Invalid value for
+            // zipcode." from Easebuzz itself (our own local validation never checks this
+            // field at all, so it isn't a false positive on our side). Since billing
+            // address collection supports any country, most real submissions won't have
+            // an Indian PIN — fall back to a neutral placeholder (mirrors
+            // PayGlocalService's '000000' default for the same field) instead of hard
+            // failing the whole payment over a field Easebuzz doesn't use for anything
+            // but its own format check.
+            'zipcode' => preg_match('/^\d{6}$/', $zipDigits) ? $zipDigits : '000000',
             'udf1' => (string) $course->id,
             'udf2' => $payment->txnid,
             'udf3' => '',

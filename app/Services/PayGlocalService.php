@@ -216,7 +216,7 @@ class PayGlocalService implements PaymentGatewayContract
                     'addressCity' => $params['address_city'] ?? 'NA',
                     'addressState' => $params['address_state'] ?? 'NA',
                     'addressPostalCode' => $params['address_postal_code'] ?? '000000',
-                    'addressCountry' => $params['address_country'] ?? 'IN',
+                    'addressCountry' => $this->toAlpha3CountryCode($params['address_country'] ?? 'IN'),
                     'emailId' => $params['email'],
                 ],
             ],
@@ -278,6 +278,31 @@ class PayGlocalService implements PaymentGatewayContract
             'redirect_url' => $decoded['data']['redirectUrl'],
             'status_url' => $decoded['data']['statusUrl'] ?? null,
         ];
+    }
+
+    /**
+     * PayGlocal's addressCountry requires ISO 3166-1 alpha-3 (e.g. "IND"), but every
+     * other part of this app — the frontend's country picker, Easebuzz — works in
+     * alpha-2 ("IN"). Sending alpha-2 straight through gets every request rejected
+     * with "Invalid request fields" / INVALID_COUNTRY_CODE, which is what was
+     * happening for every country in production before this conversion existed.
+     */
+    private function toAlpha3CountryCode(string $code): string
+    {
+        $code = strtoupper(trim($code));
+
+        if (strlen($code) === 3) {
+            return $code;
+        }
+
+        $alpha3 = config('iso_countries')[$code] ?? null;
+
+        if ($alpha3 === null) {
+            Log::warning('PayGlocal: Unrecognized country code, defaulting to IND', ['code' => $code]);
+            return 'IND';
+        }
+
+        return $alpha3;
     }
 
     /**
