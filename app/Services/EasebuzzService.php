@@ -9,8 +9,8 @@ use Illuminate\Support\Str;
 
 class EasebuzzService implements PaymentGatewayContract
 {
-    private string $merchantKey;
-    private string $salt;
+    private ?string $merchantKey;
+    private ?string $salt;
     private string $env;
 
     public function __construct()
@@ -127,6 +127,10 @@ class EasebuzzService implements PaymentGatewayContract
      */
     public function verifyTransaction(string $identifier): array
     {
+        if (!$this->isConfigured()) {
+            return ['success' => false, 'pending' => false, 'amount' => null, 'raw' => 'Easebuzz is not configured'];
+        }
+
         $txnid = $identifier;
         $hashString = $this->merchantKey . '|' . $txnid . '|' . $this->salt;
         $hash = strtolower(hash('sha512', $hashString));
@@ -246,6 +250,10 @@ class EasebuzzService implements PaymentGatewayContract
      */
     public function initiatePayment(array $params): array
     {
+        if (!$this->isConfigured()) {
+            return ['success' => false, 'error' => 'Easebuzz is not configured'];
+        }
+
         // Include the Easebuzz library
         require_once __DIR__ . '/../Lib/Easebuzz/utils.php';
 
